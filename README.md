@@ -312,4 +312,4 @@ Copyright (C) 2026 MrGabenDima. Skyrim Mod Engine is free software under the
 [GNU General Public License v3.0 or later](https://github.com/FartGarfild/SME-Skyrim-mod-engine/blob/main/LICENSE):
 you may use, change and share it, including changed versions, as long as they stay under the same license
 with their source code available and the author credited.
-Source code: [github.com/FartGarfild/SME-Skyrim-mod-engine](https://github.com/FartGarfild/SME-Skyrim-mod-engine).
+
