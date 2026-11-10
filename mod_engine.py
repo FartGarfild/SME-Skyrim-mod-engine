@@ -24,7 +24,7 @@ import xml.etree.ElementTree as ET
 import zlib
 import zipfile
 from pathlib import Path, PurePosixPath
-from datetime import datetime
+from datetime import datetime, timezone
 
 # ===================================================================================
 # Interface language: --lang uk|en (remembered in <output>/settings.json), else SME_LANG,
@@ -80,6 +80,82 @@ def tr(text: str, *args) -> str:
     return s.format(*args) if args else s
 
 _EN = {
+    '\n=== ПЕРЕВІРКА ОНОВЛЕНЬ ===': '\n=== UPDATE CHECK ===',
+    'Архівів з Nexus: {0} (модів: {1})': 'Archives from Nexus: {0} (mods: {1})',
+    '  стара версія: папка {0}': '  old version: folder {0}',
+    'Повна перевірка: список файлів кожного мода ({0} запит(ів) до Nexus)...': 'Full check: the file list of every mod ({0} request(s) to Nexus)...',
+    'Оновлені на Nexus з останньої перевірки: {0}; з них у тебе: {1}': 'Updated on Nexus since the last check: {0}; of them yours: {1}',
+    '  ПОМИЛКА Nexus: {0}': '  Nexus ERROR: {0}',
+    'Нових версій немає.': 'No new versions.',
+    'Є нові версії: {0}': 'New versions: {0}',
+    'Оновити: --update-mod НАЗВА або --update-all (з Premium файли качаються самі)': 'Update: --update-mod NAME or --update-all (with Premium the files download by themselves)',
+    'Файл застарів, а заміни автор не вказав: {0}': 'File outdated and the author named no replacement: {0}',
+    'Не знайдено на Nexus (файл видалено або архів перейменовано): {0}': 'Not found on Nexus (file deleted or archive renamed): {0}',
+    'Перевірити на Nexus, чи вийшли нові версії встановлених модів (full — перечитати всі моди, а не лише оновлені).': 'Check Nexus for new versions of installed mods (full — re-read every mod, not only updated ones).',
+    'Оновити мод до знайденої нової версії: завантажити (Premium) і замінити на місці — порядок, увімкнення й вибір FOMOD лишаються.': 'Update a mod to the new version found: download (Premium) and replace in place — order, enabled state and FOMOD choices stay.',
+    'Оновити всі моди, для яких знайдено нові версії (завантаження — з Premium).': 'Update every mod a new version was found for (download needs Premium).',
+    '\n=== ОНОВЛЕННЯ МОДІВ: {0} ===': '\n=== MOD UPDATES: {0} ===',
+    'видалена': 'deleted',
+    '  старий архів {0}: {1}': '  old archive {0}: {1}',
+    '  Нова версія мода «{0}» (було: {1}) — замінюю на місці, порядок і вибір лишаються': '  New version of «{0}» (was: {1}) — replacing in place, order and choices stay',
+    '  Замінити «{0}» новою версією? [Y/n]: ': '  Replace «{0}» with the new version? [Y/n]: ',
+    '\nОновлений FOMOD-мод «{0}»: перевстановлюю «{1}» зі збереженим вибором': '\nUpdated FOMOD mod «{0}»: reinstalling «{1}» with the saved choices',
+    'Для «{0}» нової версії не знайдено — спершу --check-updates': 'No new version found for «{0}» — run --check-updates first',
+    '{0}: новий архів уже є — розпакую': '{0}: the new archive is already here — unpacking',
+    '{0}: без Premium завантаж файл на сайті («Mod Manager Download»), потім «Розпакувати нові»:\n  {1}': '{0}: without Premium download the file on the site (“Mod Manager Download”), then “Unpack new”:\n  {1}',
+    '  У профілях {0} цей мод теж встановлено — перевстанови його там («Пакети» → «Вибрати варіанти» або --fomod-redo).': '  Profiles {0} have this mod installed too — reinstall it there (“Packages” → “Choose options” or --fomod-redo).',
+    '  (новий файл визначено за назвою — перевір)': '  (new file matched by name — check it)',
+    '  (архів уже завантажено — розпакуй, щоб застосувати)': '  (archive already downloaded — unpack to apply)',
+    'Окремого GTK-інтерфейсу більше немає — відкриваю інтерфейс у вікні програми.': 'There is no separate GTK interface any more — opening the interface in the app window.',
+    'Графічний інтерфейс у вікні програми (WebKit, Chromium/Vivaldi або Firefox), інакше вкладкою в браузері (також: подвійний клік по скрипту). web — одразу вкладкою.': 'Graphical interface in an app window (WebKit, Chromium/Vivaldi or Firefox), otherwise as a browser tab (also: double-click the script). web — a tab straight away.',
+    'Skyrim.ini у префіксі не знайдено — запусти гру хоча б раз через Steam.': 'Skyrim.ini not found in the prefix — start the game through Steam at least once.',
+    'Гра (або SKSE) зараз запущена — закрий її перед зміною Skyrim.ini.': 'The game (or SKSE) is running — close it before changing Skyrim.ini.',
+    'Лог Papyrus {0} (Skyrim.ini). Діє з наступного запуску гри; лог: Documents/My Games/…/Logs/Script/Papyrus.0.log': 'Papyrus log {0} (Skyrim.ini). Takes effect on the next game start; log: Documents/My Games/…/Logs/Script/Papyrus.0.log',
+    'Лог трохи навантажує гру — вимкни, коли знайдеш проблему.': 'The log adds a little load on the game — turn it off once you have found the problem.',
+    'Увімкнути/вимкнути лог скриптів Papyrus у Skyrim.ini префікса (оригінал зберігається в backup).': "Turn the Papyrus script log on/off in the prefix's Skyrim.ini (the original is kept in backup).",
+    'краш-логи': 'crash logs', 'папка гри': 'game folder',
+    '\n=== ЛОГИ ГРИ Й МОДІВ ===': '\n=== GAME AND MOD LOGS ===',
+    'Логів не знайдено — запусти гру хоча б раз через SKSE.': 'No logs found — start the game through SKSE at least once.',
+    'Останній краш-лог: {0} ({1}){2}': 'Latest crash log: {0} ({1}){2}',
+    ' — з останньої сесії': ' — from the last session',
+    '  Найчастіше згадуються (підказка, не вирок): {0}': '  Mentioned most (a hint, not a verdict): {0}',
+    '  помилок: {0}': '  errors: {0}', '  попереджень: {0}': '  warnings: {0}',
+    '* — з останнього запуску гри (не старші за skse64.log більше ніж на годину).': '* — from the last game start (not more than an hour older than skse64.log).',
+    'Лог Papyrus вимкнено (Skyrim.ini, [Papyrus] bEnableLogging=0) — для пошуку проблем зі скриптами його можна ввімкнути.': 'The Papyrus log is off (Skyrim.ini, [Papyrus] bEnableLogging=0) — turn it on to look for script problems.',
+    'Логи гри, SKSE, модів, краш-логи й Papyrus: список з кількістю помилок і підказками з останнього краш-логу.': 'Logs of the game, SKSE, mods, crash logs and Papyrus: a list with error counts and hints from the latest crash log.',
+    '{0}: вимкнено разом з його master {1}': '{0}: disabled together with its master {1}',
+    'власний порядок плагінів профілю: {0} з {1}': "profile's own plugin order: {0} of {1}",
+    ', вимкнено {0}': ', {0} disabled',
+    'УВАГА (порядок плагінів): {0} стоїть вище свого master {1} — гра так не завантажить, ставлю після нього': 'WARNING (plugin order): {0} is above its master {1} — the game cannot load it that way, placing it after',
+    'УВАГА (порядок плагінів): {0} — master (ESM/ESL), гра завжди вантажить його перед звичайними .esp (зокрема {1})': 'WARNING (plugin order): {0} is a master (ESM/ESL); the game always loads it before regular .esp files (such as {1})',
+    'Гра (або SKSE) зараз запущена — закрий її, щоб застосувати порядок.': 'The game (or SKSE) is running — close it to apply the order.',
+    'plugins.txt переписано — новий порядок діє з наступного запуску гри (файли не перерозгортались).': 'plugins.txt rewritten — the new order takes effect on the next game start (files were not redeployed).',
+    'Порядок плагінів не прочитано: {0}': 'Could not read the plugin order: {0}',
+    'Власний порядок плагінів профілю «{0}» збережено: {1} плагін(ів), вимкнено {2}.': 'Own plugin order of profile «{0}» saved: {1} plugin(s), {2} disabled.',
+    'Власний порядок плагінів профілю «{0}» скинуто — знову діють LOOT і правила рушія.': 'Own plugin order of profile «{0}» reset — LOOT and the engine rules apply again.',
+    'Новий порядок застосується при наступному розгортанні (--deploy).': 'The new order will be applied on the next deployment (--deploy).',
+    'Власний порядок плагінів профілю (вище — раніше, нижче — перемагає): JSON-список, файл у форматі plugins.txt або reset. Якщо розгортання актуальне — одразу переписує plugins.txt.': "The profile's own plugin order (higher loads earlier, lower wins): a JSON list, a file in plugins.txt format, or reset. If the deployment is up to date, plugins.txt is rewritten right away.",
+    '✔ Готово — можна грати.': '✔ Done — ready to play.',
+    '✖ Автоналаштування не завершено — дивись журнал вище.': '✖ The automatic setup did not finish — see the log above.',
+    '\n=== SKSE ===': '\n=== SKSE ===',
+    'SKSE для гри {0} є.': 'SKSE for game {0} is present.',
+    'SKSE не знайдено, але жоден мод його не потребує — пропускаю.': 'SKSE not found, but no mod needs it — skipping.',
+    'УВАГА: SKSE не встановлено, а його потребують моди ({0}). Увійди в Nexus (Головна), щоб програма встановила його сама, або встанови SKSE вручну.': 'WARNING: SKSE is not installed, but mods need it ({0}). Log in to Nexus (Home) so the program installs it, or install SKSE by hand.',
+    'УВАГА: SKSE встановити не вдалося — моди з SKSE-плагінами не працюватимуть.': 'WARNING: SKSE could not be installed — mods with SKSE plugins will not work.',
+    'Якщо якийсь мод потребує SKSE, а його немає — завантажити (з Premium) або попередити.': 'If a mod needs SKSE and it is missing — download it (Premium) or warn.',
+    '\n=== Видалення мода «{0}» ===': '\n=== Removing mod «{0}» ===',
+    '  Архів «{0}» залишено (не розпаковуватиметься знову)': '  Archive «{0}» kept (will not be unpacked again)',
+    '  Архів «{0}»: {1}': '  Archive «{0}»: {1}',
+    '  Архів мода не знайдено серед розпакованих (мод міг бути покладений у папку вручну).': '  No archive of this mod among the unpacked ones (the mod may have been put into the folder by hand).',
+    '  Архіву «{0}» вже немає': '  Archive «{0}» is already gone',
+    '  Папка «{0}»: {1}': '  Folder «{0}»: {1}',
+    '  Файли мода ще в папці гри: розгорни профіль знову, щоб їх прибрати.': "  The mod's files are still in the game folder: deploy the profile again to remove them.",
+    'Видалити мод: папку, FOMOD-варіанти й архів (у кошик, якщо він є).': 'Remove a mod: its folder, FOMOD variants and archive (to the trash when there is one).',
+    'Гра запущена — закрий її перед видаленням мода.': 'The game is running — close it before removing a mod.',
+    'З --remove-mod: архів лишити (і більше не розпаковувати).': 'With --remove-mod: keep the archive (and do not unpack it again).',
+    'Мода «{0}» немає в папці модів.': 'There is no mod «{0}» in the mods folder.',
+    'видалено': 'deleted',
+    'у кошику': 'in the trash',
     " (файлу поки немає — з'явиться після запуску гри через SKSE)": ' (no such file yet — it appears after the game is started through SKSE)',
     'skse64.log: стандартний шлях у префіксі Proton.': 'skse64.log: the default path in the Proton prefix.',
     'Додано в архіви: {0}': 'Added to archives: {0}',
@@ -1146,10 +1222,6 @@ _EN = {
         "The old {0} folder has files ({1}); not moving them. To move: add --move.",
     "УВАГА: папка модів на іншому диску, ніж гра — розгортання копіюватиме файли замість жорстких посилань (займе місце на диску гри). Краще тримати моди на тому ж диску, що й гру.":
         "WARNING: the mods folder is on another drive than the game — deployment will copy files instead of hard-linking (uses space on the game drive). Better keep mods on the same drive as the game.",
-    "Графічний інтерфейс: вікно GTK, якщо є, інакше сторінка в браузері (також: подвійний клік по скрипту). gtk/web — примусово.":
-        "Graphical interface: a GTK window if available, otherwise a page in the browser (also: double-click the script). gtk/web — force one.",
-    "GTK 3 (PyGObject) недоступний — відкриваю інтерфейс у браузері.":
-        "GTK 3 (PyGObject) is not available — opening the interface in the browser.",
     "Створено профіль «{0}»: {1}.":
         "Created profile «{0}»: {1}.",
     "моди з колекції":
@@ -1728,12 +1800,15 @@ def find_skse_log(game_dir: Path, explicit: str | None) -> Path | None:
 
 def pe_file_version(path: Path) -> tuple[int, int, int, int] | None:
     """FileVersion from the VS_FIXEDFILEINFO block of a Windows .exe/.dll."""
-    with path.open("rb") as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-        i = mm.find(b"\xbd\x04\xef\xfe")
-        if i < 0:
-            return None
-        ms, ls = struct.unpack_from("<II", mm, i + 8)
-        return (ms >> 16, ms & 0xFFFF, ls >> 16, ls & 0xFFFF)
+    try:
+        with path.open("rb") as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+            i = mm.find(b"\xbd\x04\xef\xfe")
+            if i < 0 or i + 16 > len(mm):
+                return None
+            ms, ls = struct.unpack_from("<II", mm, i + 8)
+            return (ms >> 16, ms & 0xFFFF, ls >> 16, ls & 0xFFFF)
+    except (OSError, ValueError):  # empty (e.g. a 0-byte stub left by a failed Steam update) or unreadable
+        return None
 
 class PEFile:
     """Minimal PE32+ reader: exported names and reading bytes at an RVA. Stdlib only."""
@@ -3001,6 +3076,109 @@ def delete_profile(output_root: Path, mods_root: Path, name: str, active: str) -
             removed += 1
     print(tr("Профіль «{0}» видалено.", name) + (tr(" Прибрано FOMOD-варіантів, які більше ніхто не використовує: {0}", removed) if removed else ""))
 
+def send_to_trash(path: Path) -> str:
+    """The desktop's trash when there is one (a mistake can be undone), otherwise a plain delete."""
+    for cmd in (["gio", "trash", str(path)], ["kioclient6", "move", str(path), "trash:/"], ["kioclient5", "move", str(path), "trash:/"]):
+        if shutil.which(cmd[0]):
+            try:
+                if subprocess.run(cmd, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                  timeout=120, check=False).returncode == 0 and not path.exists():
+                    return "trash"
+            except (OSError, subprocess.SubprocessError):
+                pass
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    else:
+        path.unlink()
+    return "deleted"
+
+def archive_volumes(archive: Path) -> list[Path]:
+    """An archive and, for "name.part1.rar", the other parts next to it."""
+    if not FIRST_VOLUME_RE.search(archive.name):
+        return [archive]
+    stem = FIRST_VOLUME_RE.sub("", archive.name)
+    return sorted(p for p in archive.parent.glob(glob_escape(stem) + ".part*.rar") if p.is_file())
+
+def glob_escape(s: str) -> str:
+    return re.sub(r"([*?\[])", r"[\1]", s)
+
+def remove_mod(output_root: Path, mods_root: Path, archives_root: Path, name: str, keep_archive: bool) -> int:
+    """Remove a mod completely: its folder, its FOMOD variants, its lines in every profile and saved FOMOD
+    choices, and its archive (to the trash) unless keep_archive — then the archive is marked so that the
+    next scan does not unpack it again."""
+    m = FOMOD_OUT_RE.match(name)
+    base = m.group(1) if m and (mods_root / m.group(1)).is_dir() else name
+    if not (mods_root / base).is_dir() and not (mods_root / name).is_dir():
+        print(tr("Мода «{0}» немає в папці модів.", name))
+        return 1
+    if game_running():
+        print(tr("Гра запущена — закрий її перед видаленням мода."))
+        return 1
+    folders = sorted({base} | {p.name for p in mods_root.iterdir() if p.is_dir() and (fm := FOMOD_OUT_RE.match(p.name)) and fm.group(1) == base}
+                     | ({name} if (mods_root / name).is_dir() else set()))
+    folders = [f for f in folders if (mods_root / f).is_dir()]
+    print(tr("\n=== Видалення мода «{0}» ===", base))
+    j = load_journal(output_root)
+    in_game = [f for f in folders if j and f in (j.get("order") or [])]
+    for f in folders:
+        how = send_to_trash(mods_root / f)
+        print(tr("  Папка «{0}»: {1}", f, tr("у кошику") if how == "trash" else tr("видалено")))
+    # archives that produced it
+    state_p = output_root / "processed_archives.json"
+    try:
+        state = json.loads(state_p.read_text(encoding="utf-8")) if state_p.exists() else {}
+    except Exception:
+        state = {}
+    cache_p = output_root / "md5_cache.json"
+    try:
+        cache = json.loads(cache_p.read_text(encoding="utf-8")) if cache_p.exists() else {}
+    except Exception:
+        cache = {}
+    found = False
+    for rel, rec in list(state.items()):
+        dest = rec.get("destination")
+        if not dest or Path(dest).name not in folders:
+            continue
+        found = True
+        ap = Path(rel) if Path(rel).is_absolute() else archives_root / rel
+        inside = not Path(rel).is_absolute()
+        if keep_archive or not inside:
+            rec["removed"] = True  # keep the file, but do not unpack it again
+            if ap.exists():
+                st_ = ap.stat()
+                rec.update(size=st_.st_size, mtime_ns=st_.st_mtime_ns)
+            print(tr("  Архів «{0}» залишено (не розпаковуватиметься знову)", ap.name) if ap.exists() else tr("  Архіву «{0}» вже немає", ap.name))
+            continue
+        for v in archive_volumes(ap) if ap.exists() else []:
+            how = send_to_trash(v)
+            print(tr("  Архів «{0}»: {1}", v.name, tr("у кошику") if how == "trash" else tr("видалено")))
+            cache.pop(str(v.relative_to(archives_root)), None)
+        state.pop(rel, None)
+    if not found:
+        print(tr("  Архів мода не знайдено серед розпакованих (мод міг бути покладений у папку вручну)."))
+    state_p.write_text(json.dumps(state, ensure_ascii=False, indent=1), encoding="utf-8")
+    if cache_p.exists():
+        cache_p.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
+    # every profile: mod order lines and saved FOMOD choices
+    gone = set(folders)
+    for prof in list_profiles(output_root):
+        pdir = profile_dir(output_root, prof)
+        ml = pdir / "modlist.txt"
+        if ml.exists():
+            lines = ml.read_text(encoding="utf-8").splitlines()
+            keep = [l for l in lines if l.strip().lstrip("-").strip() not in gone]
+            if len(keep) != len(lines):
+                ml.write_text("\n".join(keep) + "\n", encoding="utf-8")
+        for f in (pdir / "fomod").glob("*.json") if (pdir / "fomod").is_dir() else []:
+            try:
+                if json.loads(f.read_text(encoding="utf-8")).get("mod") == base:
+                    f.unlink()
+            except Exception:
+                pass
+    if in_game:
+        print(tr("  Файли мода ще в папці гри: розгорни профіль знову, щоб їх прибрати."))
+    return 0
+
 def print_profiles(output_root: Path, active: str) -> None:
     j = load_journal(output_root)
     deployed = j.get("profile", DEFAULT_PROFILE) if j else None
@@ -3594,6 +3772,142 @@ def order_plugins_with_loot(game_dir: Path, output_root: Path, load: list, data_
     (output_root / "loot_report.txt").write_text("\n".join(lines + notes + msgs) + "\n", encoding="utf-8")
     return ordered, lines + notes + [f"LOOT: {m}" for m in msgs]
 
+USER_PLUGIN_ORDER = "plugin_order.json"  # per profile: the user's own load order, wins over LOOT and the collection
+
+def plugin_master_flag(name: str, path: Path | None) -> bool:
+    """The game loads these with the masters: .esm/.esl, or an .esp with the ESM flag in its header."""
+    if name.lower().endswith((".esm", ".esl")):
+        return True
+    try:
+        with path.open("rb") as f:
+            h = f.read(12)
+        return len(h) == 12 and h[:4] == b"TES4" and bool(struct.unpack_from("<I", h, 8)[0] & 0x1)
+    except (OSError, AttributeError):
+        return False
+
+def load_user_plugin_order(pdir: Path | None) -> dict | None:
+    if pdir is None:
+        return None
+    try:
+        d = json.loads((pdir / USER_PLUGIN_ORDER).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(d, dict) or not isinstance(d.get("order"), list) or not d["order"]:
+        return None
+    return {"order": [str(x) for x in d["order"] if str(x).strip()],
+            "disabled": [str(x) for x in d.get("disabled") or []]}
+
+def parse_plugin_order_arg(value: str) -> dict | None:
+    """--plugin-order: JSON {"order": [...], "disabled": [...]} or a JSON list, a file with either
+    of these, or a text file (one plugin per line, "*" = active, as in plugins.txt). None = reset."""
+    v = value.strip()
+    if v.lower() in ("reset", "none", "loot"):
+        return None
+    if not v.startswith(("{", "[")):
+        p = Path(v).expanduser()
+        txt = p.read_text(encoding="utf-8-sig", errors="replace")
+        if not txt.lstrip().startswith(("{", "[")):
+            order, off = [], []
+            for l in txt.splitlines():
+                l = l.strip()
+                if not l or l.startswith("#"):
+                    continue
+                name = l.lstrip("*").strip()
+                order.append(name)
+                if not l.startswith("*") and any(x.strip().startswith("*") for x in txt.splitlines()):
+                    off.append(name)
+            return {"order": order, "disabled": off}
+        v = txt
+    d = json.loads(v)
+    if isinstance(d, list):
+        d = {"order": d}
+    return {"order": [str(x) for x in d.get("order") or [] if str(x).strip()],
+            "disabled": [str(x) for x in d.get("disabled") or []]}
+
+def apply_user_plugin_order(load: list, uo: dict) -> tuple[list, set[str], list[str]]:
+    """The user's order for the plugins they listed (unlisted ones keep their place after their
+    predecessor). Two things the game itself enforces win over it: master-flagged plugins load
+    before all regular ones, and a plugin loads after its own masters."""
+    order = uo.get("order") or []
+    if not order:
+        return load, set(), []
+    pos = {n.lower(): k for k, n in enumerate(order)}
+    flag = {it[0].lower(): plugin_master_flag(it[0], it[1]) for it in load}
+    out, disabled, _ = apply_collection_plugin_order(load, {"plugins": [{"name": n} for n in order]},
+                                                     lambda it: flag[it[0].lower()])
+    present = {it[0].lower() for it in load}
+    disabled = {n.lower() for n in uo.get("disabled") or [] if n.lower() in present}
+    notes = [tr("власний порядок плагінів профілю: {0} з {1}", sum(1 for it in load if it[0].lower() in pos), len(load))
+             + (tr(", вимкнено {0}", len(disabled)) if disabled else "")]
+    for name, _, masters in load:
+        k = pos.get(name.lower())
+        if k is None:
+            continue
+        for m in masters:
+            j = pos.get(m.lower())
+            if j is not None and j > k:
+                notes.append(tr("УВАГА (порядок плагінів): {0} стоїть вище свого master {1} — гра так не завантажить, ставлю після нього", name, m))
+        if flag.get(name.lower()):
+            later_regular = [n for n in order[:k] if n.lower() in flag and not flag[n.lower()]]
+            if later_regular:
+                notes.append(tr("УВАГА (порядок плагінів): {0} — master (ESM/ESL), гра завжди вантажить його перед звичайними .esp (зокрема {1})", name, later_regular[-1]))
+    return out, disabled, notes
+
+def final_plugin_load(game_dir: Path, mods_root: Path, output_root: Path, mods: list[dict], order: list[str],
+                      data_files: dict, root_files: dict, use_loot: bool, loot_update: bool,
+                      coll: dict | None, pdir: Path | None) -> tuple[list, set[str], list[str]]:
+    """Engine rules -> LOOT -> collection author's order -> the user's own order (each step can only
+    reorder within what the game allows). Returns (load order, disabled plugins, report lines)."""
+    load = plugin_load_order(mods_root, mods, order)
+    load, lines = order_plugins_with_loot(game_dir, output_root, load, data_files, root_files, use_loot, loot_update)
+    disabled: set[str] = set()
+    if coll:
+        load, disabled, cnotes = apply_collection_plugin_order(load, coll, lambda it: plugin_master_flag(it[0], it[1]))
+        lines = lines[:1] + cnotes + lines[1:]
+    uo = load_user_plugin_order(pdir)
+    if uo:
+        load, udis, unotes = apply_user_plugin_order(load, uo)
+        disabled = (disabled - {n.lower() for n in uo["order"]}) | udis  # the user's choice wins for listed ones
+        lines = lines[:1] + unotes + lines[1:]
+    if disabled:  # a plugin whose master is switched off would stop the game at start ("missing masters")
+        extra = []
+        for name, _, masters in load:
+            off = [m for m in masters if m.lower() in disabled]
+            if off and name.lower() not in disabled:
+                disabled.add(name.lower())
+                extra.append(tr("{0}: вимкнено разом з його master {1}", name, ", ".join(off)))
+        lines = lines[:1] + extra + lines[1:]
+    return load, disabled, lines
+
+def reapply_plugin_order(game_dir: Path, mods_root: Path, output_root: Path, mods: list[dict], order: list[str],
+                         use_loot: bool, coll: dict | None, profile: str, pdir: Path) -> bool:
+    """Rewrite plugins.txt of the current deployment with the new order, without redeploying files.
+    Only when that deployment is this profile's and has exactly these mods; otherwise False."""
+    journal = load_journal(output_root)
+    if not journal or not journal.get("complete", True) or journal.get("profile", DEFAULT_PROFILE) != profile:
+        return False
+    if [x for x in journal.get("order", []) if x != OVERWRITE_NAME] != order:
+        return False
+    if game_running():
+        print(tr("Гра (або SKSE) зараз запущена — закрий її, щоб застосувати порядок."))
+        return False
+    ow = overwrite_summary(pdir)
+    if ow:
+        mods, order = mods + [ow], order + [OVERWRITE_NAME]
+    data_files, root_files = deploy_plan(mods_root, mods, order)
+    load, disabled, lines = final_plugin_load(game_dir, mods_root, output_root, mods, order, data_files,
+                                              root_files, use_loot, False, coll, pdir)
+    for l in lines[:2] + [x for x in lines[2:] if not x.startswith("LOOT: ")]:
+        print(l)
+    msgs = write_plugins_txt(game_dir, output_root, journal, load, False, disabled)
+    for m in msgs:
+        print(f"  {m}")
+    journal["plugins"] = [it[0] for it in load]
+    journal["plugins_disabled"] = sorted(disabled)
+    save_journal(output_root, journal)
+    print(tr("plugins.txt переписано — новий порядок діє з наступного запуску гри (файли не перерозгортались)."))
+    return True
+
 RUNTIME_CONFIG_EXTS = {".json", ".toml", ".yaml", ".yml"}
 
 def is_runtime_config(data_rel_low: str) -> bool:
@@ -3660,22 +3974,8 @@ def deploy(game_dir: Path, mods_root: Path, output_root: Path, mods: list[dict],
         if free < cross_bytes + (512 << 20):
             print(tr("Недостатньо місця на диску гри: потрібно {0}, вільно {1}. Розгортання скасовано.", human_size(cross_bytes + (512 << 20)), human_size(free)))
             return False
-    load = plugin_load_order(mods_root, mods, order)
-    load, loot_lines = order_plugins_with_loot(game_dir, output_root, load, data_files, root_files,
-                                              use_loot, loot_update)
-    disabled: set[str] = set()
-    if coll:
-        def _mflag(it):
-            if it[0].lower().endswith((".esm", ".esl")):
-                return True
-            try:
-                with it[1].open("rb") as f:
-                    h = f.read(12)
-                return len(h) == 12 and h[:4] == b"TES4" and bool(struct.unpack_from("<I", h, 8)[0] & 0x1)
-            except OSError:
-                return False
-        load, disabled, cnotes = apply_collection_plugin_order(load, coll, _mflag)
-        loot_lines = loot_lines[:1] + cnotes + loot_lines[1:]
+    load, disabled, loot_lines = final_plugin_load(game_dir, mods_root, output_root, mods, order, data_files,
+                                                   root_files, use_loot, loot_update, coll, pdir)
     for l in loot_lines[:2] + [x for x in loot_lines[2:] if not x.startswith("LOOT: ")]:
         print(l)
     loot_msgs = [x for x in loot_lines if x.startswith("LOOT: ")]
@@ -3748,7 +4048,9 @@ def deploy(game_dir: Path, mods_root: Path, output_root: Path, mods: list[dict],
                     journal["copies"].append({"path": trel, "size": st.st_size, "mtime_ns": st.st_mtime_ns})
             msgs = write_plugins_txt(game_dir, output_root, journal, load, False, disabled)
             journal["plugins"] = [it[0] for it in load]
+            journal["plugins_disabled"] = sorted(disabled)
             journal["complete"] = True
+            (output_root / REDEPLOY_FILE).unlink(missing_ok=True)
         except Exception as e:
             print(tr("ПОМИЛКА розгортання: {0}", e))
             print(tr("План записано в журнал; запусти --undeploy, щоб повністю відкотити."))
@@ -5020,6 +5322,291 @@ def steam_root_of(game_dir: Path) -> list[Path]:
     roots = [Path.home() / ".local/share/Steam", Path.home() / ".steam/steam"]
     return [r for r in roots if (r / "userdata").exists() or (r / "config").exists()]
 
+# ===================================================================================
+# Logs written by the game, SKSE and mods (read-only: the program never changes them)
+# ===================================================================================
+GAME_LOG_ERR_RE = re.compile(r"\[(?:error|critical|E|C)\]|\b(?:error|errors|exception|failed|failure|fatal|crash(?:ed)?|"
+                             r"unable to|cannot|can't|could not|couldn't|missing|not found)\b", re.I)
+GAME_LOG_WARN_RE = re.compile(r"\[(?:warning|warn|W)\]|\bwarn(?:ing)?s?\b", re.I)
+GAME_LOG_NOISE_RE = re.compile(r"\b0 errors?\b|\berrors?: 0\b|no errors?\b", re.I)
+GAME_LOG_SYSTEM_DLLS = {
+    "ntdll.dll", "kernel32.dll", "kernelbase.dll", "ucrtbase.dll", "user32.dll", "win32u.dll", "gdi32.dll",
+    "msvcrt.dll", "msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll", "d3d11.dll", "dxgi.dll",
+    "d3dcompiler_47.dll", "xinput1_3.dll", "steam_api64.dll", "combase.dll", "ole32.dll", "rpcrt4.dll",
+    "advapi32.dll", "sechost.dll", "bcrypt.dll", "dbghelp.dll", "winmm.dll", "dsound.dll", "xaudio2_7.dll",
+    "wined3d.dll", "dxvk_d3d11.dll", "version.dll", "shell32.dll", "ws2_32.dll", "crashloggersse.dll",
+    "trainwreck.dll"}
+GAME_LOG_MAX_FILES = 400
+
+def game_log_files(game_dir: Path) -> list[dict]:
+    """Every log we know of, newest first: SKSE and its plugins, crash logs, Papyrus, Proton, Data/SKSE."""
+    _, docs = prefix_dirs(game_dir)
+    out: list[dict] = []
+    seen: set[str] = set()
+
+    def add(p: Path, group: str) -> None:
+        try:
+            if not p.is_file() or str(p) in seen:
+                return
+            st = p.stat()
+        except OSError:
+            return
+        seen.add(str(p))
+        out.append({"path": str(p), "name": p.name, "group": group, "size": st.st_size, "mtime": st.st_mtime})
+
+    def crashy(name: str) -> bool:  # crash-2026-11-02-18-46-01.log (Crash Logger, Trainwreck); not CrashLogger.log itself
+        return re.match(r"crash[-_ ]?\d", name.lower()) is not None
+
+    skse = ci_join(docs, "SKSE") if docs.exists() else None
+    if skse:
+        for dp, dns, fns in os.walk(skse):
+            depth = len(Path(dp).relative_to(skse).parts)
+            if depth >= 2:
+                dns[:] = []
+            for fn in fns:
+                if fn.lower().endswith((".log", ".txt")):
+                    sub = Path(dp).relative_to(skse).parts
+                    add(Path(dp) / fn, "crash" if crashy(fn) or (sub and sub[0].lower() == "crashlogs") else "skse")
+    explicit = SAVED_PATHS.get("skse_log")
+    if explicit:
+        add(Path(explicit).expanduser(), "skse")
+    script = ci_join(docs, "Logs", "Script") if docs.exists() else None
+    if script:
+        for p in list(script.glob("*.log")) + list(script.glob("User/*.log")):
+            add(p, "papyrus")
+    gdata = ci_join(game_dir, "Data")
+    if gdata:
+        sp = ci_join(gdata, "SKSE", "Plugins")
+        if sp:
+            for p in sp.rglob("*.log"):
+                add(p, "data")
+        nsf = ci_join(gdata, "NetScriptFramework", "Crash")
+        if nsf:
+            for p in nsf.glob("*.txt"):
+                add(p, "crash")
+    for p in game_dir.glob("*.log"):
+        add(p, "game")
+    home = Path.home()
+    for p in home.glob(f"steam-{SKYRIM_APPID}*.log"):
+        add(p, "proton")
+    out.sort(key=lambda x: -x["mtime"])
+    return out[:GAME_LOG_MAX_FILES]
+
+def read_log_tail(path: Path, limit: int = 2 << 20) -> tuple[str, bool]:
+    """Last `limit` bytes as text (logs are UTF-8 or the Windows code page), and whether it was cut."""
+    with path.open("rb") as f:
+        f.seek(0, 2)
+        size = f.tell()
+        f.seek(max(0, size - limit))
+        data = f.read()
+    cut = size > limit
+    if cut:
+        data = data[data.find(b"\n") + 1:]
+    if data.startswith(b"\xff\xfe") or data[1:200:2].count(0) > 50:  # a few tools write UTF-16
+        try:
+            return data.decode("utf-16", "replace"), cut
+        except Exception:
+            pass
+    try:
+        return data.decode("utf-8"), cut
+    except UnicodeDecodeError:
+        return data.decode("cp1252", "replace"), cut
+
+GAME_LOG_TAG_RE = re.compile(r"\[(error|critical|err|E|C|warning|warn|W|info|debug|trace|I|D|T)\]", re.I)
+
+def log_line_level(line: str) -> str:
+    m = GAME_LOG_TAG_RE.search(line)  # spdlog-style level tag of SKSE plugins: it decides
+    if m:
+        tag = m.group(1).lower()
+        return "e" if tag in ("error", "critical", "err", "e", "c") else "w" if tag in ("warning", "warn", "w") else ""
+    if GAME_LOG_NOISE_RE.search(line):
+        return ""
+    e, w = GAME_LOG_ERR_RE.search(line), GAME_LOG_WARN_RE.search(line)
+    if e and w:  # "warning: ... cannot be initialized" is a warning: the first keyword is the level
+        return "e" if e.start() < w.start() else "w"
+    return "e" if e else "w" if w else ""
+
+def crash_log_summary(text: str, known: set[str] | None = None) -> dict:
+    """What a crash log points at: the exception line and the mod DLLs / plugins it mentions most.
+    Only hints — a name in a crash log is not proof that this mod caused the crash. Names of installed
+    plugins and SKSE DLLs (`known`, may contain spaces) are counted exactly; others by a simple pattern."""
+    exc = next((l.strip() for l in text.splitlines() if re.search(r"unhandled exception|exception_[a-z_]+|access violation", l, re.I)), "")
+    low_text = text.lower()
+    names: dict[str, int] = {}
+    skip = lambda low: low in GAME_LOG_SYSTEM_DLLS or low in BASE_MASTERS or low.startswith(("skse64_", "api-ms-win"))
+    covered = set()
+    for n in known or ():
+        low = n.lower()
+        if skip(low):
+            continue
+        c = low_text.count(low)
+        if c:
+            names[n] = c
+            covered.add(low)
+    for m in re.finditer(r'"([^"\n]{1,120}?\.(?:dll|esp|esm|esl))"', text, re.I):  # quoted names may have spaces
+        n = m.group(1).strip()
+        low = n.lower()
+        if skip(low) or low in covered:
+            continue
+        names[n] = names.get(n, 0) + 1
+    quoted = {k.lower() for k in names} - covered
+    for low in quoted:  # the same name also unquoted elsewhere in the log
+        n = next(k for k in names if k.lower() == low)
+        names[n] = max(names[n], low_text.count(low))
+    covered |= quoted
+    for m in re.finditer(r"(?<![\w.'&+()\-])([A-Za-z0-9_][A-Za-z0-9_.'&+()\-]{0,80}\.(?:dll|esp|esm|esl))\b", text, re.I):
+        n = m.group(1)
+        low = n.lower()
+        if skip(low) or any(k.endswith(low) for k in covered) or re.fullmatch(r"(?:0x)?[0-9a-f]+", low.rsplit(".", 1)[0]):
+            continue
+        names[n] = names.get(n, 0) + 1
+    top = sorted(names.items(), key=lambda kv: -kv[1])[:8]
+    return {"exception": exc[:300], "mentions": [{"name": n, "count": c} for n, c in top]}
+
+def installed_plugin_names(game_dir: Path) -> set[str]:
+    gdata = ci_join(game_dir, "Data")
+    out: set[str] = set()
+    if gdata:
+        out |= {p.name for p in gdata.iterdir() if p.suffix.lower() in PLUGIN_EXTS}
+        sp = ci_join(gdata, "SKSE", "Plugins")
+        if sp:
+            out |= {p.name for p in sp.iterdir() if p.suffix.lower() == ".dll"}
+    return out
+
+def game_log_overview(game_dir: Path, with_counts: bool = True, cache: dict | None = None) -> dict:
+    """Log list with error/warning counts, the start of the last game session (skse64.log) and the newest crash."""
+    files = game_log_files(game_dir)
+    skse_log = find_skse_log(game_dir, None)
+    # skse64.log is rewritten on every start through SKSE; plugin logs are too. A log much older than
+    # it (an hour of margin for long loading) was left by an earlier session or by a removed mod.
+    session = skse_log.stat().st_mtime if skse_log else None
+    known = None
+    for f in files:
+        f["fresh"] = session is not None and f["mtime"] >= session - 3600
+        if not with_counts:
+            continue
+        key = (f["path"], f["mtime"], f["size"])
+        c = cache.get(f["path"]) if cache is not None else None
+        if c and c[0] == key:
+            f.update(c[1])
+            continue
+        info = {"errors": 0, "warnings": 0}
+        try:
+            text, _ = read_log_tail(Path(f["path"]), 4 << 20)
+            for l in text.splitlines():
+                lv = log_line_level(l)
+                if lv == "e":
+                    info["errors"] += 1
+                elif lv == "w":
+                    info["warnings"] += 1
+            if f["group"] == "crash":
+                if known is None:
+                    known = installed_plugin_names(game_dir)
+                info["crash"] = crash_log_summary(text, known)
+        except OSError:
+            info["unreadable"] = True
+        if cache is not None:
+            cache[f["path"]] = (key, info)
+        f.update(info)
+    crash = next((f for f in files if f["group"] == "crash"), None)
+    return {"files": files, "session": session, "skse_log": str(skse_log) if skse_log else None,
+            "last_crash": crash, "papyrus_on": papyrus_logging_on(game_dir)}
+
+def papyrus_logging_on(game_dir: Path) -> bool | None:
+    """[Papyrus] bEnableLogging in Skyrim.ini / SkyrimCustom.ini of the prefix (None = no ini found)."""
+    _, docs = prefix_dirs(game_dir)
+    val = None
+    for name in ("Skyrim.ini", "SkyrimCustom.ini"):
+        ini = ci_join(docs, name) if docs.exists() else None
+        if not ini:
+            continue
+        sec = ""
+        for l in ini.read_text(encoding="utf-8", errors="replace").splitlines():
+            l = l.strip()
+            if l.startswith("["):
+                sec = l.lower()
+            elif sec == "[papyrus]" and l.lower().replace(" ", "").startswith("benablelogging="):
+                val = l.split("=", 1)[1].strip() == "1"
+        if val is None:
+            val = False
+    return val
+
+PAPYRUS_LOG_KEYS = ("bEnableLogging", "bEnableTrace", "bLoadDebugInformation")
+
+def set_papyrus_logging(game_dir: Path, output_root: Path, on: bool) -> bool:
+    """Switch the Papyrus script log in Skyrim.ini of the prefix ([Papyrus] section). The first change
+    keeps the original as mod_engine_output/backup/Skyrim.ini.original."""
+    _, docs = prefix_dirs(game_dir)
+    ini = ci_join(docs, "Skyrim.ini") if docs.exists() else None
+    if ini is None:
+        print(tr("Skyrim.ini у префіксі не знайдено — запусти гру хоча б раз через Steam."))
+        return False
+    if game_running():
+        print(tr("Гра (або SKSE) зараз запущена — закрий її перед зміною Skyrim.ini."))
+        return False
+    raw = ini.read_bytes()
+    nl = "\r\n" if b"\r\n" in raw else "\n"
+    lines = raw.decode("utf-8", errors="replace").splitlines()
+    bk = output_root / "backup" / "Skyrim.ini.original"
+    if not bk.exists():
+        bk.parent.mkdir(parents=True, exist_ok=True)
+        bk.write_bytes(raw)
+    val = "1" if on else "0"
+    out, sec, done, in_pap = [], "", set(), False
+    for l in lines:
+        st = l.strip()
+        if st.startswith("["):
+            if in_pap:
+                out += [f"{k}={val}" for k in PAPYRUS_LOG_KEYS if k.lower() not in done]
+                done |= {k.lower() for k in PAPYRUS_LOG_KEYS}
+            in_pap = st.lower() == "[papyrus]"
+            out.append(l)
+            continue
+        key = st.split("=", 1)[0].strip().lower() if "=" in st else ""
+        if in_pap and key in {k.lower() for k in PAPYRUS_LOG_KEYS}:
+            out.append(f"{st.split('=', 1)[0].strip()}={val}")
+            done.add(key)
+            continue
+        out.append(l)
+    if in_pap:
+        out += [f"{k}={val}" for k in PAPYRUS_LOG_KEYS if k.lower() not in done]
+        done |= {k.lower() for k in PAPYRUS_LOG_KEYS}
+    if not done:
+        out += ["", "[Papyrus]"] + [f"{k}={val}" for k in PAPYRUS_LOG_KEYS]
+    ini.write_bytes((nl.join(out) + nl).encode("utf-8"))
+    print(tr("Лог Papyrus {0} (Skyrim.ini). Діє з наступного запуску гри; лог: Documents/My Games/…/Logs/Script/Papyrus.0.log", tr("увімкнено") if on else tr("вимкнено")))
+    if on:
+        print(tr("Лог трохи навантажує гру — вимкни, коли знайдеш проблему."))
+    return True
+
+def print_game_logs(game_dir: Path) -> None:
+    ov = game_log_overview(game_dir)
+    groups = {"crash": tr("краш-логи"), "skse": "SKSE", "papyrus": "Papyrus", "data": "Data/SKSE/Plugins",
+              "game": tr("папка гри"), "proton": "Proton"}
+    print(tr("\n=== ЛОГИ ГРИ Й МОДІВ ==="))
+    if not ov["files"]:
+        print(tr("Логів не знайдено — запусти гру хоча б раз через SKSE."))
+        return
+    if ov["last_crash"]:
+        c = ov["last_crash"]
+        print(tr("Останній краш-лог: {0} ({1}){2}", c["name"], datetime.fromtimestamp(c["mtime"]).strftime("%Y-%m-%d %H:%M"),
+                 tr(" — з останньої сесії") if c.get("fresh") else ""))
+        cs = c.get("crash") or {}
+        if cs.get("exception"):
+            print(f"  {cs['exception']}")
+        if cs.get("mentions"):
+            print(tr("  Найчастіше згадуються (підказка, не вирок): {0}", ", ".join(f"{m['name']} ×{m['count']}" for m in cs["mentions"])))
+    for f in ov["files"]:
+        mark = "*" if f.get("fresh") else " "
+        print(f"{mark} [{groups.get(f['group'], f['group'])}] {f['name']}  {human_size(f['size'])}  "
+              f"{datetime.fromtimestamp(f['mtime']).strftime('%Y-%m-%d %H:%M')}"
+              + (tr("  помилок: {0}", f["errors"]) if f.get("errors") else "")
+              + (tr("  попереджень: {0}", f["warnings"]) if f.get("warnings") else ""))
+        print(f"      {f['path']}")
+    print(tr("* — з останнього запуску гри (не старші за skse64.log більше ніж на годину)."))
+    if ov["papyrus_on"] is False:
+        print(tr("Лог Papyrus вимкнено (Skyrim.ini, [Papyrus] bEnableLogging=0) — для пошуку проблем зі скриптами його можна ввімкнути."))
+
 def check_proton_setup(game_dir: Path, srs: dict | None) -> list[str]:
     """Human-readable findings; lines starting with 'УВАГА' need action."""
     lines = []
@@ -5935,6 +6522,7 @@ def nexus_download(mod: int, file_id: int, archives_root: Path, key: str, game: 
     archives_root.mkdir(parents=True, exist_ok=True)
     dest = archives_root / fname
     if dest.exists() and (not exact or dest.stat().st_size == size) and (not expect_md5 or md5_file(dest) == expect_md5.lower()):
+        remember_nexus_source(archives_root, dest.name, mod, file_id, info)
         print(tr("  {0}: уже є в mods-archives", fname))
         return dest
     params = {"key": nxm_key, "expires": expires} if nxm_key and expires else None
@@ -5954,6 +6542,7 @@ def nexus_download(mod: int, file_id: int, archives_root: Path, key: str, game: 
         part.unlink()
         raise NexusError(tr("MD5 не збігається з очікуваним — файл видалено"))
     part.replace(dest)
+    remember_nexus_source(archives_root, dest.name, mod, file_id, info)
     print(tr("  Готово: {0}", dest.name), flush=True)
     return dest
 
@@ -6141,6 +6730,8 @@ def fetch_collection(ref: str, output_root: Path, pdir: Path | None = None) -> d
         pdir = pdir or profile_dir(output_root, read_settings(output_root).get("profile") or DEFAULT_PROFILE)
         pdir.mkdir(parents=True, exist_ok=True)
         shutil.copy2(found[0], pdir / COLLECTION_FILE)
+        (pdir / "collection_source.json").write_text(json.dumps({"slug": slug, "revision": info["revision"], "name": info["name"]},
+                                                                ensure_ascii=False), encoding="utf-8")
         shutil.rmtree(staging, ignore_errors=True)
     except NexusError as ex:
         print(tr("ПОМИЛКА: {0}", ex))
@@ -6211,6 +6802,58 @@ def nexus_search(query: str = "", sort: str = "endorsements", offset: int = 0, c
                 "has_more": (offset + len(nodes) < total) if total is not None else len(nodes) >= count}
     raise NexusError(last or "search failed")
 
+NEXUS_COLLECTION_FIELDS = ["slug", "name", "summary", "endorsements", "totalDownloads", "user { name }", "category { name }",
+                           "updatedAt", "tileImage { thumbnailUrl }",
+                           "latestPublishedRevision { revisionNumber modCount adultContent totalSize }"]
+NEXUS_COLLECTION_SORTS = {"endorsements": "endorsements", "downloads": "downloads", "updated": "updatedAt", "new": "updatedAt"}
+
+def nexus_collections_search(query: str = "", sort: str = "endorsements", offset: int = 0, count: int = 20,
+                             key: str | None = None, adult: bool = False) -> dict:
+    """Collections for this game (GraphQL collectionsV2). A field the API does not know is dropped and the
+    query repeated, as with the mod search."""
+    fields = list(NEXUS_COLLECTION_FIELDS)
+    flt: dict = {"gameDomain": [{"value": NEXUS_GAME, "op": "EQUALS"}]}
+    if query.strip():
+        flt["generalSearch"] = [{"value": query.strip(), "op": "WILDCARD"}]
+    sort_key = NEXUS_COLLECTION_SORTS.get(sort, "endorsements")
+    last = None
+    for _ in range(10):
+        q = ("query($filter: CollectionsSearchFilter, $sort: [CollectionsSearchSort!], $offset: Int, $count: Int) {"
+             " collectionsV2(filter: $filter, sort: $sort, offset: $offset, count: $count) { totalCount nodes { %s } } }" % " ".join(fields))
+        try:
+            d = nexus_graphql(q, {"filter": flt, "sort": [{sort_key: {"direction": "DESC"}}], "offset": offset, "count": count}, key)
+        except NexusError as ex:
+            last = str(ex)
+            m = re.search(r'Cannot query field "(\w+)"', last) or re.search(r"field '(\w+)'", last, re.I)
+            if m:
+                bad = next((f for f in fields if f.split()[0] == m.group(1) or f" {m.group(1)} " in f" {f} "), None)
+                if bad and bad != "slug":
+                    if bad.startswith("latestPublishedRevision") and m.group(1) != "latestPublishedRevision":
+                        fields[fields.index(bad)] = bad.replace(" " + m.group(1), "")
+                    else:
+                        fields.remove(bad)
+                    continue
+            if sort_key != "endorsements" and sort_key in last:
+                sort_key = "endorsements"
+                continue
+            raise
+        c = d.get("collectionsV2") or {}
+        nodes = c.get("nodes") or []
+        out = []
+        for n in nodes:
+            rev = n.get("latestPublishedRevision") or {}
+            if rev.get("adultContent") and not adult:
+                continue
+            out.append({"slug": n.get("slug"), "name": n.get("name"), "summary": n.get("summary") or "",
+                        "author": (n.get("user") or {}).get("name"), "category": (n.get("category") or {}).get("name"),
+                        "endorsements": n.get("endorsements"), "downloads": n.get("totalDownloads"), "updated": n.get("updatedAt"),
+                        "picture": (n.get("tileImage") or {}).get("thumbnailUrl"), "revision": rev.get("revisionNumber"),
+                        "mods": rev.get("modCount"), "size": rev.get("totalSize"), "adult": bool(rev.get("adultContent"))})
+        total = c.get("totalCount")
+        total = int(total) if isinstance(total, (int, float)) else None
+        return {"total": total, "collections": out, "has_more": (offset + len(nodes) < total) if total is not None else len(nodes) >= count}
+    raise NexusError(last or "search failed")
+
 def nexus_list_v1(kind: str, key: str) -> dict:
     """Fallback lists from the v1 API: trending / latest_added / latest_updated."""
     path = {"trending": "trending", "new": "latest_added", "updated": "latest_updated"}.get(kind, "trending")
@@ -6234,6 +6877,249 @@ def nexus_mod_files(mod: int, key: str) -> list[dict]:
     order = {"MAIN": 0, "UPDATE": 1, "OPTIONAL": 2, "MISCELLANEOUS": 3, "OLD_VERSION": 4}
     out.sort(key=lambda f: (order.get(f["category"], 5), not f["primary"], -(f["uploaded"] or 0)))
     return out
+
+# --- Mod updates ------------------------------------------------------------------------------------
+NEXUS_SOURCES = ".nexus_sources.json"   # in the archives folder: archive file name -> Nexus mod/file it came from
+UPDATES_FILE = "updates.json"           # in the output folder: last check and what it found
+UPDATE_FULL_DAYS = 30                   # a full re-check after this; in between only mods Nexus lists as updated
+UPDATE_WORKERS = 4
+
+def remember_nexus_source(archives_root: Path, fname: str, mod: int, file_id: int, info: dict | None = None) -> None:
+    p = archives_root / NEXUS_SOURCES
+    try:
+        d = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+    except (OSError, ValueError):
+        d = {}
+    d[fname] = {"mod": int(mod), "file": int(file_id), "version": (info or {}).get("version") or (info or {}).get("mod_version"),
+                "at": int(time.time())}
+    try:
+        p.write_text(json.dumps(d, ensure_ascii=False, indent=1), encoding="utf-8")
+    except OSError:
+        pass
+
+def nexus_archive_ref(fname: str) -> dict | None:
+    """Mod ID, version and upload time from a Nexus file name, both the classic
+    "<Name>-<ModID>-<version>-<unix time>.ext" and the newer "<Name> <ModID> <version> <ISO time>Z <code>.ext"."""
+    stem = re.sub(r"(\.tar)?\.[A-Za-z0-9]+$", "", FIRST_VOLUME_RE.sub(r"\1", fname))
+    parts = stem.split("-")
+    if len(parts) >= 3 and re.fullmatch(r"\d{9,11}", parts[-1]):
+        for i in range(1, len(parts) - 1):
+            if re.fullmatch(r"\d+", parts[i].strip()):
+                return {"mod": int(parts[i]), "version": ".".join(p for p in parts[i + 1:-1] if p) or None, "ts": int(parts[-1])}
+    m = re.match(r"^(.+)[ _-](\d+)[ _-](\S+?)[ _-](\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})(?:-(\d{2}))?Z(?:[ _-][0-9A-Za-z]+)?$", stem)
+    if m:
+        y, mo, d, h, mi, sec = (int(x or 0) for x in m.group(4, 5, 6, 7, 8, 9))
+        ts = int(datetime(y, mo, d, h, mi, sec, tzinfo=timezone.utc).timestamp())
+        return {"mod": int(m.group(2)), "version": m.group(3).replace("-", "."), "ts": ts, "approx": True}
+    return None
+
+def installed_nexus_archives(output_root: Path, archives_root: Path) -> list[dict]:
+    """Unpacked archives that come from Nexus: {archive, name, folder, mod, file?, version, ts}."""
+    try:
+        state = json.loads((output_root / "processed_archives.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        state = {}
+    try:
+        src = json.loads((archives_root / NEXUS_SOURCES).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        src = {}
+    out = []
+    for rel, rec in state.items():
+        dest = rec.get("destination")
+        if not dest or rec.get("removed") or not Path(dest).is_dir():
+            continue
+        name = Path(rel).name
+        ref = nexus_archive_ref(name) or {}
+        known = src.get(name) or {}
+        if not (ref.get("mod") or known.get("mod")):
+            continue
+        out.append({"archive": rel, "name": name, "folder": Path(dest).name, "mod": int(known.get("mod") or ref["mod"]),
+                    "file": known.get("file"), "version": known.get("version") or ref.get("version"),
+                    "ts": ref.get("ts"), "approx": ref.get("approx", False)})
+    return out
+
+def nexus_files_compact(mod: int, key: str) -> dict:
+    data = nexus_get(f"/v1/games/{NEXUS_GAME}/mods/{mod}/files.json", key)
+    files = [{"id": int(f["file_id"]), "name": f.get("name") or "", "version": f.get("version") or f.get("mod_version") or "",
+              "cat": str(f.get("category_name") or "").upper(), "fname": f.get("file_name") or "",
+              "up": int(f.get("uploaded_timestamp") or 0), "size": int(f.get("size_in_bytes") or 0) or int(f.get("size_kb") or 0) * 1024}
+             for f in (data or {}).get("files", []) if f.get("file_id")]
+    ups = [[int(u["old_file_id"]), int(u["new_file_id"])] for u in (data or {}).get("file_updates", [])
+           if u.get("old_file_id") and u.get("new_file_id")]
+    return {"files": files, "updates": ups, "at": int(time.time())}
+
+def evaluate_update(a: dict, info: dict, have_names: set[str]) -> dict:
+    """Compare one installed archive with the mod's file list on Nexus."""
+    files = {f["id"]: f for f in info.get("files", [])}
+    cur = files.get(int(a["file"])) if a.get("file") else None
+    if cur is None:
+        cur = next((f for f in files.values() if f["fname"] and f["fname"].lower() == a["name"].lower()), None)
+    if cur is None and a.get("ts"):
+        tol = 90 if a.get("approx") else 2
+        cur = next((f for f in files.values() if f["up"] and abs(f["up"] - a["ts"]) <= tol), None)
+    if cur is None:
+        return {"status": "unknown"}
+    res = {"status": "ok", "file": cur["id"], "cur_version": cur["version"] or a.get("version"), "cur_name": cur["name"]}
+    nxt = dict((o, n) for o, n in info.get("updates", []))
+    tgt, seen = cur["id"], {cur["id"]}
+    while tgt in nxt and nxt[tgt] not in seen:  # follow "this file was replaced by that one"
+        tgt = nxt[tgt]
+        seen.add(tgt)
+    target = files.get(tgt) if tgt != cur["id"] else None
+    guessed = False
+    if target is None and cur["cat"] in ("OLD_VERSION", "ARCHIVED", "DELETED"):
+        cands = [f for f in files.values() if f["cat"] in ("MAIN", "UPDATE", "OPTIONAL") and f["name"] == cur["name"] and f["up"] > cur["up"]]
+        if not cands:
+            cands = [f for f in files.values() if f["cat"] == "MAIN" and f["up"] > cur["up"]] if cur["cat"] != "OPTIONAL" else []
+        target = max(cands, key=lambda f: f["up"], default=None)
+        guessed = target is not None
+        if target is None:
+            res["status"] = "outdated"
+            return res
+    if target is None:
+        return res
+    res.update(status="update", target=target["id"], version=target["version"], target_name=target["name"],
+               target_fname=target["fname"], size=target["size"], guessed=guessed)
+    if target["fname"] and target["fname"].lower() in have_names:
+        res["status"] = "downloaded"  # the new archive is already in the archives folder: unpack to apply
+    return res
+
+def load_updates(output_root: Path) -> dict:
+    try:
+        d = json.loads((output_root / UPDATES_FILE).read_text(encoding="utf-8"))
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+def check_updates(output_root: Path, archives_root: Path, key: str, full: bool = False) -> dict:
+    """Ask Nexus which installed mods have newer files. The first check (and one a month) reads every
+    mod's file list; in between only mods that Nexus reports as updated since the last check."""
+    from concurrent.futures import ThreadPoolExecutor
+    data = load_updates(output_root)
+    mods_info: dict = data.get("mods") or {}
+    arcs = installed_nexus_archives(output_root, archives_root)
+    ids = sorted({a["mod"] for a in arcs})
+    now = int(time.time())
+    print(tr("\n=== ПЕРЕВІРКА ОНОВЛЕНЬ ==="))
+    print(tr("Архівів з Nexus: {0} (модів: {1})", len(arcs), len(ids)))
+    last_full, last = int(data.get("full_at") or 0), int(data.get("checked_at") or 0)
+    if full or not last_full or now - last_full > UPDATE_FULL_DAYS * 86400:
+        need = set(ids)
+        data["full_at"] = now
+        print(tr("Повна перевірка: список файлів кожного мода ({0} запит(ів) до Nexus)...", len(need)), flush=True)
+    else:
+        age = now - last
+        period = "1d" if age < 86400 else "1w" if age < 7 * 86400 else "1m"
+        upd = nexus_get(f"/v1/games/{NEXUS_GAME}/mods/updated.json", key, {"period": period}) or []
+        changed = {int(x["mod_id"]) for x in upd if x.get("mod_id") and int(x.get("latest_file_update") or now) >= last - 3600}
+        need = (set(ids) & changed) | {i for i in ids if str(i) not in mods_info}
+        print(tr("Оновлені на Nexus з останньої перевірки: {0}; з них у тебе: {1}", len(changed), len(need)), flush=True)
+    errors: list[str] = []
+    done = 0
+
+    def one(mid: int):
+        try:
+            return mid, nexus_files_compact(mid, key), None
+        except NexusError as ex:
+            return mid, None, str(ex)
+    if need:
+        with ThreadPoolExecutor(max_workers=UPDATE_WORKERS) as pool:
+            for mid, info, err in pool.map(one, sorted(need)):
+                done += 1
+                if done % 50 == 0:
+                    print(tr("  перевірено {0}/{1}...", done, len(need)), flush=True)
+                if info is not None:
+                    mods_info[str(mid)] = info
+                elif err:
+                    errors.append(f"{mid}: {err}")
+                    if "401" in err or "API Key" in err:
+                        break
+    have = {p.name.lower() for p in archives_root.iterdir() if p.is_file()} if archives_root.is_dir() else set()
+    results = {}
+    for a in arcs:
+        info = mods_info.get(str(a["mod"]))
+        r = evaluate_update(a, info, have) if info else {"status": "unchecked"}
+        r.update(mod=a["mod"], folder=a["folder"], archive=a["archive"])
+        results[a["archive"]] = r
+    data.update(mods={k: v for k, v in mods_info.items() if int(k) in set(ids)}, checked_at=now, results=results)
+    (output_root / UPDATES_FILE).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    print_updates(results)
+    for e_ in errors[:10]:
+        print(tr("  ПОМИЛКА Nexus: {0}", e_))
+    return data
+
+def print_updates(results: dict) -> None:
+    ups = [r for r in results.values() if r["status"] in ("update", "downloaded")]
+    old = [r for r in results.values() if r["status"] == "outdated"]
+    unk = [r for r in results.values() if r["status"] == "unknown"]
+    if not ups:
+        print(tr("Нових версій немає."))
+    else:
+        print(tr("Є нові версії: {0}", len(ups)))
+        for r in sorted(ups, key=lambda r: r["folder"].lower()):
+            print(f"  {r['folder']}: {r.get('cur_version') or '?'} → {r.get('version') or '?'}"
+                  + (tr("  (архів уже завантажено — розпакуй, щоб застосувати)") if r["status"] == "downloaded" else "")
+                  + (tr("  (новий файл визначено за назвою — перевір)") if r.get("guessed") else ""))
+        print(tr("Оновити: --update-mod НАЗВА або --update-all (з Premium файли качаються самі)"))
+    if old:
+        print(tr("Файл застарів, а заміни автор не вказав: {0}", ", ".join(sorted(r["folder"] for r in old))))
+    if unk:
+        print(tr("Не знайдено на Nexus (файл видалено або архів перейменовано): {0}", len(unk)))
+
+REDEPLOY_FILE = "redeploy_needed.json"  # mods whose files changed after the last deployment (updated in place)
+
+def mark_redeploy(output_root: Path, name: str) -> None:
+    rp = output_root / REDEPLOY_FILE
+    try:
+        names = set(json.loads(rp.read_text(encoding="utf-8"))) if rp.exists() else set()
+    except (OSError, ValueError):
+        names = set()
+    names.add(name)
+    rp.write_text(json.dumps(sorted(names), ensure_ascii=False), encoding="utf-8")
+
+def redeploy_needed(output_root: Path) -> set[str]:
+    try:
+        return set(json.loads((output_root / REDEPLOY_FILE).read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        return set()
+
+def archive_update_of(output_root: Path, state: dict, archive: Path, destination: Path) -> str | None:
+    """The state key of the archive that `archive` replaces. Only when the last update check found
+    exactly this file as the new version of the archive in this mod folder: a second file of the same
+    mod with a similar name (a patch, an optional part) must never replace the main one."""
+    for r in (load_updates(output_root).get("results") or {}).values():
+        if r.get("status") not in ("update", "downloaded") or r.get("folder") != destination.name:
+            continue
+        if (r.get("target_fname") or "").lower() != archive.name.lower():
+            continue
+        rec = state.get(r.get("archive"))
+        if rec and not rec.get("removed") and rec.get("destination") and Path(rec["destination"]).name == destination.name \
+                and Path(r["archive"]).name != archive.name:
+            return r["archive"]
+    return None
+
+def finish_mod_update(output_root: Path, mods_root: Path, archives_root: Path, state: dict, old_rel: str, destination: Path) -> None:
+    """Swap in the new version: old folder and old archive to the trash, the new folder takes the same
+    name (so order, enabled state and profiles stay), and the mod is marked for redeployment."""
+    how = send_to_trash(destination)
+    print(tr("  стара версія: папка {0}", tr("у кошику") if how == "trash" else tr("видалена")))
+    ap = Path(old_rel) if Path(old_rel).is_absolute() else archives_root / old_rel
+    if not Path(old_rel).is_absolute():
+        for v in archive_volumes(ap) if ap.exists() else []:
+            how = send_to_trash(v)
+            print(tr("  старий архів {0}: {1}", v.name, tr("у кошику") if how == "trash" else tr("видалено")))
+    state.pop(old_rel, None)
+    mark_redeploy(output_root, destination.name)
+    up = load_updates(output_root)
+    if up.get("results"):  # this one is done: drop it from the found updates
+        up["results"] = {k: v for k, v in up["results"].items() if v.get("folder") != destination.name}
+        (output_root / UPDATES_FILE).write_text(json.dumps(up, ensure_ascii=False), encoding="utf-8")
+
+def update_target(output_root: Path, folder: str) -> dict | None:
+    for r in (load_updates(output_root).get("results") or {}).values():
+        if r.get("folder") == folder and r.get("status") in ("update", "downloaded"):
+            return r
+    return None
 
 def nexus_mm_url(mod: int, file_id: int | None = None) -> str:
     """The site page whose "Mod Manager Download" button sends an nxm:// link to this program."""
@@ -6259,6 +7145,51 @@ def archive_names(path: Path) -> list[str]:
     except Exception:
         return []
     return [f["path"] for f in inv.get("files", [])]
+
+def skse_ensure(game_dir: Path, mods_root: Path, archives_root: Path, output_root: Path) -> int:
+    """For the one-button setup: SKSE is installed when a mod needs it and it is missing — downloaded
+    with a Premium key, otherwise a clear warning (the setup goes on without it)."""
+    runtime = skse_target_runtime(game_dir, mods_root)
+    want = "skse64_{}_{}_{}.dll".format(*runtime) if runtime else None
+    try:
+        mods = json.loads((output_root / "manifest.json").read_text(encoding="utf-8")).get("mods", [])
+    except Exception:
+        mods = []
+    needing = [m["name"] for m in mods if m.get("skse_plugins")]
+    if not needing:  # FOMOD sources (not installed yet) and DLLs the static check could not read: the file lists
+        rx = re.compile(r"(^|/)skse/plugins/[^/\t]+\.dll\t", re.IGNORECASE)
+        for m in mods:
+            if m.get("layout") == "fomod":  # FOMOD sources have no file list: look at their DLLs directly
+                d = mods_root / m["name"]
+                if d.is_dir() and any(re.search(r"(^|/)skse/plugins/[^/]+$", p.relative_to(d).as_posix(), re.I)
+                                      for p in d.rglob("*") if p.suffix.lower() == ".dll"):
+                    needing.append(m["name"])
+                continue
+            idx = output_root / "index" / str(m.get("index") or "")
+            if m.get("index") and idx.is_file():
+                try:
+                    with gzip.open(idx, "rt", encoding="utf-8", errors="replace") as f:
+                        if any(rx.search(line.replace("\\", "/")) for line in f):
+                            needing.append(m["name"])
+                except OSError:
+                    pass
+    have = bool(want) and (ci_join(game_dir, want) is not None or any(
+        p.name.lower() == want for p in list(mods_root.glob("*/*")) + list(mods_root.glob("*/*/*"))))
+    print(tr("\n=== SKSE ==="))
+    if have:
+        print(tr("SKSE для гри {0} є.", ".".join(map(str, runtime))))
+        return 0
+    if not needing:
+        print(tr("SKSE не знайдено, але жоден мод його не потребує — пропускаю."))
+        return 0
+    acc = nexus_account()
+    if not acc:
+        print(tr("УВАГА: SKSE не встановлено, а його потребують моди ({0}). Увійди в Nexus (Головна), щоб програма встановила його сама, або встанови SKSE вручну.", len(needing)))
+        return 0
+    rc = skse_install(game_dir, mods_root, archives_root)
+    if rc:
+        print(tr("УВАГА: SKSE встановити не вдалося — моди з SKSE-плагінами не працюватимуть."))
+    return 0
 
 def skse_install(game_dir: Path, mods_root: Path, archives_root: Path) -> int:
     runtime = skse_target_runtime(game_dir, mods_root)
@@ -6366,10 +7297,16 @@ GUI_ACTIONS = {
     "collection_download": ["--collection-download", "--yes"],
     "collection_download_all": ["--collection-download", "--with-optional", "--yes"],
     "scan_suffix": ["--yes", "--collision", "suffix"],
+    # "auto_all" (the one button) is a chain of three runs, see GuiApp.auto_all
     "skse_launcher": ["--skse-launcher"],
     "skse_launcher_restore": ["--skse-launcher-restore"],
     "loot_on": ["--loot", "on"],
     "loot_off": ["--loot", "off"],
+    "check_updates": ["--check-updates"],
+    "check_updates_full": ["--check-updates", "full"],
+    "update_all": ["--update-all"],
+    "papyrus_on": ["--papyrus-log", "on"],
+    "papyrus_off": ["--papyrus-log", "off"],
     "collection_none": ["--collection", "none", "--scan-only"],
 }
 GUI_VALUE_ACTIONS = {  # action -> (extra keys, key that takes the value from the page)
@@ -6382,7 +7319,10 @@ GUI_VALUE_ACTIONS = {  # action -> (extra keys, key that takes the value from th
     "set_archives": (["--scan-only"], "--set-archives"), "set_archives_move": (["--move", "--scan-only"], "--set-archives"),
     "set_mods": (["--scan-only"], "--set-mods"), "set_mods_move": (["--move", "--scan-only"], "--set-mods"), "backup_verify": ([], "--backup-verify"), "backup_delete": ([], "--backup-delete"),
     "set_game": ([], "--set-game"), "set_skse_log": ([], "--set-skse-log"),
+    "remove_mod": (["--scan-only"], "--remove-mod"), "remove_mod_keep": (["--keep-archive", "--scan-only"], "--remove-mod"),
     "nxm": ([], "--nxm"), "collection_set": (["--scan-only"], "--collection"),
+    "plugin_order": (["--scan-only"], "--plugin-order"),
+    "update_mod": ([], "--update-mod"),
 }
 # Console hints in the event log -> where the same thing is in the GUI: flag -> (page key, button key).
 GUI_HINTS = [
@@ -6394,6 +7334,7 @@ GUI_HINTS = [
     (r"--undeploy", "deploy", "undeployBtn"), (r"--deploy", "deploy", "deployBtn"), (r"--conflicts", "conflicts", "recompute"),
     (r"--incremental-backup", "backups", "incOn"), (r"--skse(?=[^\w-]|$)", "deploy", "skseBtn"),
     (r"--set-game", "settings", "gameDir"), (r"--set-skse-log", "settings", "skseLog"),
+    (r"--update-mod(?: НАЗВА| NAME)?", "mods", "updBtn"), (r"--update-all", "mods", "updAll"), (r"--check-updates", "mods", "updCheck"),
 ]
 GUI_CATEGORY_RULES = (  # dominant file type -> category key
     ("Animation/behavior", "anim"), ("Flash/UI asset", "ui"), ("Audio", "audio"),
@@ -6438,6 +7379,7 @@ class GuiApp:
         self.root = engine_path.parent
         self.out = (self.root / output).resolve()
         self.token = secrets.token_urlsafe(18)
+        self.plugin_hdr: dict[str, tuple] = {}  # path -> (mtime_ns, size, master flag, light, masters)
         self.lock = threading.Lock()
         self.job: dict | None = None
         self.log: list[str] = []
@@ -6449,6 +7391,10 @@ class GuiApp:
         self.question: dict | None = None  # an open FOMOD question from the running job
         self.qseq = 0
         self.partial = ""   # output line still being written (a prompt waiting for an answer)
+        self.chain: list = []      # the next runs of the one-button setup
+        self.chain_warn: list = []
+        self.notice: dict | None = None  # "ready to play" / "failed" after the one-button setup
+        self.notice_seq = 0
         self._answered = ""  # that prompt, once answered in the terminal: already logged together with the answer
         self.thumbs = self.out / "cache" / "thumbs"
         self.uploads: dict = {}  # web upload progress, name -> bytes received
@@ -6475,6 +7421,56 @@ class GuiApp:
             return json.loads((self.out / name).read_text(encoding="utf-8"))
         except Exception:
             return None
+
+    def plugin_info(self, gdata: Path | None, name: str) -> dict:
+        e = self.e
+        p = e.ci_join(gdata, name) if gdata else None
+        rec = {"n": name, "m": name.lower().endswith((".esm", ".esl")), "l": name.lower().endswith(".esl"), "ms": []}
+        if p is None:
+            rec["miss"] = True
+            return rec
+        try:
+            st = p.stat()
+        except OSError:
+            rec["miss"] = True
+            return rec
+        c = self.plugin_hdr.get(str(p))
+        if not c or c[0] != st.st_mtime_ns or c[1] != st.st_size:
+            c = (st.st_mtime_ns, st.st_size, e.plugin_master_flag(name, p), e.is_light_plugin(name, p),
+                 e.read_plugin_masters(p) or [])
+            self.plugin_hdr[str(p)] = c
+        rec.update(m=c[2], l=c[3], ms=c[4])
+        return rec
+
+    def plugin_order_state(self, journal: dict | None, profile: str, pdir: Path, gdir: Path | None) -> dict:
+        """What the plugins page needs: the deployed order with flags, active state and the user's order."""
+        e = self.e
+        uo = e.load_user_plugin_order(pdir)
+        out = {"custom": bool(uo), "items": [], "same_profile": False}
+        if not journal or not journal.get("plugins"):
+            return out
+        out["same_profile"] = journal.get("profile", e.DEFAULT_PROFILE) == profile
+        gd = Path(journal["game_dir"]) if journal.get("game_dir") else gdir
+        gdata = e.ci_join(gd, "Data") if gd else None
+        active = None
+        pt = e.plugins_txt_path(gd) if gd else None
+        if pt and pt.exists():
+            try:
+                active = {l[1:].strip().lower() for l in pt.read_text(encoding="utf-8", errors="replace").splitlines()
+                          if l.startswith("*")}
+            except OSError:
+                active = None
+        off = {x.lower() for x in journal.get("plugins_disabled") or []}
+        for name in journal["plugins"]:
+            r = self.plugin_info(gdata, name)
+            r["on"] = (name.lower() in active) if active is not None else name.lower() not in off
+            out["items"].append(r)
+        if uo:  # saved, but not what plugins.txt has now (e.g. the profile is not the deployed one)
+            want = [x.lower() for x in uo["order"]]
+            have = [x["n"].lower() for x in out["items"] if x["n"].lower() in set(want)]
+            out["applied"] = out["same_profile"] and have == [x for x in want if x in set(have)] and \
+                all(x["on"] != (x["n"].lower() in {d.lower() for d in uo["disabled"]}) for x in out["items"] if x["n"].lower() in set(want))
+        return out
 
     def state(self) -> dict:
         e = self.e
@@ -6513,7 +7509,13 @@ class GuiApp:
         for rel, rec in (self.read_json("processed_archives.json") or {}).items():
             dest = rec.get("destination")
             if dest:
-                meta[Path(dest).name] = dict(gui_archive_meta(Path(rel).name), archive=Path(rel).name)
+                ref = e.nexus_archive_ref(Path(rel).name) or {}
+                meta[Path(dest).name] = {"nexus_id": ref.get("mod"), "version": ref.get("version"), "archive": Path(rel).name}
+        upd = e.load_updates(self.out)
+        upd_by: dict[str, dict] = {}
+        for r in (upd.get("results") or {}).values():
+            if r.get("status") in ("update", "downloaded", "outdated"):
+                upd_by[r["folder"]] = {k: r.get(k) for k in ("status", "version", "cur_version", "mod", "target", "guessed", "target_name", "size")}
         deps = manifest.get("mod_deps") or {}
         rdeps: dict[str, list[str]] = {}
         for n, ds in deps.items():
@@ -6547,6 +7549,7 @@ class GuiApp:
                 "deps": deps.get(n, []), "rdeps": sorted(rdeps.get(n, [])),
                 "wins": wins.get(n, []), "loses": loses.get(n, []),
                 "fomod_of": base, "fomod_steps": rec.get("steps") if rec else None,
+                "update": upd_by.get(base or n),
             })
         attention = [{"name": s["name"], "layout": s["layout"], "options": s.get("options", [])}
                      for s in view if s["name"] not in dep_names and s["layout"] != "fomod"]
@@ -6568,7 +7571,8 @@ class GuiApp:
                         "game_dir": journal.get("game_dir")}
             if deployed["profile"] == profile:
                 jorder = [x for x in journal.get("order", []) if x != e.OVERWRITE_NAME]
-                pending = jorder != [m["name"] for m in mods if m["enabled"]]
+                pending = jorder != [m["name"] for m in mods if m["enabled"]] or \
+                    bool(e.redeploy_needed(self.out) & {m["name"] for m in mods if m["enabled"]})
         ow = pdir / "overwrite"
         ow_files = sorted(p.relative_to(ow).as_posix() for p in ow.rglob("*") if p.is_file()) if ow.is_dir() else []
         bdir = self.out / "backup" / "files"
@@ -6601,7 +7605,8 @@ class GuiApp:
             "conflicts": {"computed": bool(conf), "pairs": conf.get("pairs", [])[:300],
                           "pairs_total": len(conf.get("pairs", [])), "duplicate_plugins": conf.get("duplicate_plugins", []),
                           "identical": (lambda v: v if isinstance(v, int) else len(v or []))(conf.get("identical_files"))},
-            "deployed": deployed, "pending": pending,
+            "updates": {"checked_at": upd.get("checked_at"), "count": sum(1 for m in mods if m.get("update") and m["update"]["status"] != "outdated")},
+            "deployed": deployed, "pending": pending, "log_alert": self.crash_alert(gdir), "plugin_order": self.plugin_order_state(journal, profile, pdir, gdir),
             "overwrite": {"files": ow_files[:500], "total": len(ow_files)},
             "backups": {"files": backups, "changed_sets": changed[:20]},
             "skse": skse, "job": job,
@@ -6690,7 +7695,38 @@ class GuiApp:
         self.edit_modlist(f)
 
     # ------------------------------------------------------------------ jobs
+    def auto_all(self) -> str | None:
+        """One button: 1) unpack new archives, 2) SKSE when a mod needs it (downloaded with Premium, else a
+        warning) and unpack it, 3) FOMODs with automatic choices and deployment. The game is not started."""
+        if self.job and self.job.get("running"):
+            return "busy"
+        steps = [("auto_1", ["--yes"]), ("auto_2", ["--skse-ensure", "--yes"]), ("auto_3", ["--fomod", "--auto", "--deploy"])]
+        for a, _ in steps:
+            GUI_ACTIONS[a] = []
+        self.chain, self.chain_warn = steps[1:], []
+        return self.start(*steps[0])
+
+    def _chain_step_done(self, action: str, rc: int) -> None:
+        with self.lock:
+            lines = list(self.log)
+        for l in lines:
+            t_ = l.strip()
+            if (t_.startswith(("УВАГА", "WARNING")) or GUI_PROBLEM_RE.search(t_)) and t_ not in self.chain_warn:
+                self.chain_warn.append(t_)
+        if rc == 0 and self.chain:
+            nxt = self.chain.pop(0)
+            if self.start(*nxt) is None:
+                return
+        self.chain = []
+        ok = rc == 0 and action == "auto_3" and not self._deploy_failed()
+        self.notice_seq += 1
+        no_skse = any("SKSE" in w and w.startswith(("УВАГА", "WARNING")) for w in self.chain_warn)
+        self.notice = {"id": self.notice_seq, "ok": ok, "no_skse": no_skse, "warnings": self.chain_warn[:8], "more": max(0, len(self.chain_warn) - 8)}
+        self._append(self.e.tr("✔ Готово — можна грати.") if ok else self.e.tr("✖ Автоналаштування не завершено — дивись журнал вище."))
+
     def start(self, action: str, extra: list[str] | None = None, interactive: bool = False, term: bool = False) -> str | None:
+        if action == "auto_all":
+            return self.auto_all()
         with self.lock:
             if self.job and self.job.get("running"):
                 return "busy"
@@ -6764,13 +7800,15 @@ class GuiApp:
             self.job.update(running=False, rc=rc, finished=time.time())
         if action == "deploy_launch" and rc == 0 and not self._deploy_failed():
             self.launch()
+        if action.startswith("auto_"):
+            self._chain_step_done(action, rc)
         if action == "drop_extract":
             inc = (self.out / "incoming").resolve()
             for i, a in enumerate(args):
                 if a == "--extract" and i + 1 < len(args) and Path(args[i + 1]).resolve().parent == inc:
                     Path(args[i + 1]).unlink(missing_ok=True)  # the page's temporary upload, unpacked now
-        if action in ("nxm", "import") and rc == 0:
-            self.start("scan")  # a downloaded / added archive is unpacked right away
+        if action in ("nxm", "import", "skse_install") and rc == 0:
+            self.start("scan")  # a downloaded / added archive (SKSE too) is unpacked right away
 
     def _deploy_failed(self) -> bool:
         j = self.e.load_journal(self.out)
@@ -6811,10 +7849,10 @@ class GuiApp:
     def log_since(self, n: int) -> dict:
         with self.lock:
             start = max(0, n - self.log_base)
-            return {"lines": self.log[start:], "next": self.log_base + len(self.log), "partial": self.partial,
+            return {"lines": self.log[start:], "next": self.log_base + len(self.log), "partial": self.partial, "notice": self.notice,
                     "job": dict(self.job) if self.job else None, "question": self.question}
 
-    # ------------------------------------------------------------------ a real terminal (Konsole, or VTE inside the window)
+    # ------------------------------------------------------------------ a real terminal (Konsole and others)
     def shell_rc(self) -> Path:
         """bash startup file: the user's own ~/.bashrc, then `sme` = this engine, in the engine's folder."""
         rc = self.out / "cache" / "sme_shell.rc"
@@ -7107,9 +8145,72 @@ class GuiApp:
         self._diag_paths = {r["path"] for s_ in out for r in s_["rows"] if r["path"]}
         return out
 
+    def crash_alert(self, gdir: Path | None) -> bool:
+        """A crash log from the last game session that the logs page has not shown yet (checked every 10 s)."""
+        now = time.time()
+        c = getattr(self, "_crash_chk", None)
+        if c and now - c[0] < 10:
+            return c[1]
+        alert = False
+        if gdir:
+            try:
+                ov = self.e.game_log_overview(gdir, with_counts=False)
+                lc = ov["last_crash"]
+                alert = bool(lc and lc.get("fresh") and lc["mtime"] > float(self.e.read_settings(self.out).get("crash_seen") or 0))
+            except OSError:
+                alert = False
+        self._crash_chk = (now, alert)
+        return alert
+
+    def game_logs(self) -> dict:
+        e = self.e
+        e.load_saved_paths(self.out)
+        gd = e.find_game_dir(None)
+        if not gd:
+            return {"files": [], "no_game": True}
+        if not hasattr(self, "glog_cache"):
+            self.glog_cache = {}
+        ov = e.game_log_overview(gd, True, self.glog_cache)
+        if ov["last_crash"] and ov["last_crash"]["mtime"] > float(e.read_settings(self.out).get("crash_seen") or 0):
+            e.update_settings(self.out, crash_seen=ov["last_crash"]["mtime"])
+            self._crash_chk = None
+        self._log_paths = {f["path"] for f in ov["files"]}
+        paths = self._log_paths | {str(Path(f["path"]).parent) for f in ov["files"]}
+        _, docs = e.prefix_dirs(gd)
+        for sub in ("SKSE", "Logs/Script"):
+            d = e.ci_join(docs, *sub.split("/")) if docs.exists() else None
+            if d:
+                paths.add(str(d))
+                ov.setdefault("dirs", []).append({"k": sub, "path": str(d)})
+        self._log_dirs = paths
+        return ov
+
+    def game_log_read(self, path: str) -> dict:
+        if path not in getattr(self, "_log_paths", set()):
+            self.game_logs()
+            if path not in self._log_paths:
+                return {"error": "bad"}
+        p = Path(path)
+        try:
+            text, cut = self.e.read_log_tail(p, 2 << 20)
+            st = p.stat()
+        except OSError as ex:
+            return {"error": str(ex)}
+        return {"text": text, "cut": cut, "size": st.st_size, "mtime": st.st_mtime, "path": path}
+
+    def open_file(self, path: str) -> str:
+        if path not in getattr(self, "_log_paths", set()):
+            return "bad"
+        opener = shutil.which("xdg-open")
+        if not opener:
+            return "no-opener"
+        subprocess.Popen([opener, path], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                         stderr=subprocess.DEVNULL, start_new_session=True)
+        return "ok"
+
     def open_any(self, path: str) -> str:
         """Open a folder shown on the diagnostics page (only those, nothing else)."""
-        if path not in getattr(self, "_diag_paths", set()):
+        if path not in getattr(self, "_diag_paths", set()) and path not in getattr(self, "_log_dirs", set()):
             return "bad"
         p = Path(path)
         target = p if p.is_dir() else p.parent
@@ -7316,6 +8417,25 @@ class GuiApp:
                  premium=bool(acc and acc.get("is_premium")), logged_in=bool(acc))
         return r
 
+    def browse_collections(self, query: str = "", sort: str = "endorsements", offset: int = 0, count: int = 20, adult: bool = False) -> dict:
+        e = self.e
+        acc = e.nexus_account()
+        try:
+            r = e.nexus_collections_search(query, sort, offset, count, acc.get("api_key") if acc else None, adult)
+        except e.NexusError as ex:
+            return {"error": str(ex)}
+        pd = e.profile_dir(self.out, self.profile())
+        src = self.read_json(str((pd / "collection_source.json").relative_to(self.out))) or {} if (pd / e.COLLECTION_FILE).exists() else {}
+        cur_slug = src.get("slug")
+        for c in r["collections"]:
+            c["url"] = f"https://www.nexusmods.com/games/{e.NEXUS_GAME}/collections/{c.get('slug')}"
+            c["attached"] = bool(cur_slug and cur_slug == c.get("slug"))
+        tot = r.get("total")
+        r.update(offset=offset, count=count, page=offset // count + 1,
+                 pages=(max(1, -(-tot // count)) if isinstance(tot, int) and tot >= 0 else None),
+                 premium=bool(acc and acc.get("is_premium")), logged_in=bool(acc))
+        return r
+
     def mod_files(self, mod_id: int) -> dict:
         e = self.e
         acc = e.nexus_account()
@@ -7480,6 +8600,13 @@ def gui_make_handler(app: GuiApp):
             if u.path == "/api/logfile":
                 return self._json(app.log_read(int(q.get("from", ["0"])[0] or 0),
                                                upto=int(q["to"][0]) if q.get("to", [""])[0].isdigit() else None))
+            if u.path == "/api/browse_collections":
+                return self._json(app.browse_collections(q.get("q", [""])[0], q.get("sort", ["endorsements"])[0],
+                                                         int(q.get("offset", ["0"])[0] or 0), 20, q.get("adult", ["0"])[0] == "1"))
+            if u.path == "/api/gamelogs":
+                return self._json(app.game_logs())
+            if u.path == "/api/gamelog":
+                return self._json(app.game_log_read(q.get("path", [""])[0]))
             if u.path == "/api/diag":
                 return self._json({"sections": app.diagnostics("web")})
             if u.path == "/api/mod_files":
@@ -7526,6 +8653,12 @@ def gui_make_handler(app: GuiApp):
                 if action in GUI_VALUE_ACTIONS:
                     base, flag = GUI_VALUE_ACTIONS[action]
                     val = str(body.get("value") or "")
+                    if action == "plugin_order" and val.strip().startswith(("{", "[")):
+                        # hundreds of names: a file, not a command line (it is also shown in the log)
+                        tmp = app.out / "plugin_order_new.json"
+                        tmp.parent.mkdir(parents=True, exist_ok=True)
+                        tmp.write_text(val, encoding="utf-8")
+                        val = str(tmp)
                     extra = [flag, val] + base
                     action_key = action
                     GUI_ACTIONS[action_key] = []
@@ -7591,6 +8724,8 @@ def gui_make_handler(app: GuiApp):
             if p == "/api/download":
                 r = app.download(int(body.get("mod") or 0), int(body["file"]) if body.get("file") else None)
                 return self._json(r, 409 if r.get("error") else 200)
+            if p == "/api/open_file":
+                return self._json({"result": app.open_file(str(body.get("path") or ""))})
             if p == "/api/open_path":
                 return self._json({"result": app.open_any(str(body.get("path") or ""))})
             if p == "/api/open_url":
@@ -7943,7 +9078,7 @@ background:linear-gradient(135deg,#1a2c4d,#101a2c)}
 .log .lt{display:flex;gap:10px;align-items:flex-start;padding:12px;font-weight:600}
 .log .ico{width:34px;height:34px;border-radius:7px;background:var(--acc);display:grid;place-items:center;font-family:monospace}
 .log pre{margin:0;padding:10px 12px;overflow:auto;font:12px/1.45 ui-monospace,"DejaVu Sans Mono",monospace;color:#c4d0e3;border-left:1px solid var(--line);white-space:pre-wrap}
-.log .rt{display:flex;align-items:center;gap:10px;padding:0 14px;color:var(--mut)}
+.log .rt{display:flex;align-items:center;gap:10px;padding:0 14px;color:var(--mut)}#jobtxt{min-width:0;max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);display:inline-block}.dot.run{background:var(--warn);animation:p 1s infinite}
 @keyframes p{50%{opacity:.3}}
 .page{padding:16px;overflow:auto;flex:1;min-height:0}.page h2{margin:0 0 6px;font-size:18px}.page p.m{color:var(--mut);margin:0 0 14px}
@@ -7980,6 +9115,13 @@ body.dropping::after{content:attr(data-drop);position:fixed;inset:12px;border:3p
 .bcard .bs{font-size:12.5px;color:#c4d0e3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .bcard .ba{display:flex;gap:8px;margin-top:auto;flex-wrap:wrap}.bcard .ba .btn{padding:6px 10px;font-size:12.5px}
 .badge{display:inline-block;background:#163d2a;color:#7ee2ad;border-radius:6px;padding:1px 7px;font-size:11.5px}
+.badge.bad{background:#4a1f25;color:#ff9a94}.badge.old{background:#2a3346;color:#9fb0cc}.badge.up{background:#123a5c;color:#8fd0ff;white-space:nowrap}.glcrash{border-color:#6b2a30;margin:8px 0}.chip{display:inline-block;background:#1b2740;border:1px solid var(--line);border-radius:12px;padding:2px 9px;font-size:12.5px;margin:2px 4px 2px 0}
+.gllist{max-height:34vh;overflow-y:auto;border:1px solid var(--line);border-radius:8px}.glrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:6px 10px;border-bottom:1px solid #1d2a40;cursor:pointer}.glrow:hover{background:#121c2d}.glrow.on{background:#16233a;box-shadow:inset 3px 0 0 var(--acc)}
+.glname{min-width:0;overflow-wrap:anywhere}.glmeta{margin-left:auto;font-size:12px}.glrow .cnt{border-radius:10px;padding:1px 8px;font-size:12px}.glrow .cnt.bad{background:#4a1f25;color:#ff9a94}.cnt.wn{background:#3a2e12;color:#f3c672}.glout{min-height:240px;max-height:60vh;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}.glout mark{background:#6b5a1a;color:#fff}
+.chips button.on{border-color:var(--acc);color:#fff}.polist{list-style:none;margin:0;padding:0}.pogrp{color:#8fa3c4;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;margin:10px 0 4px}
+.porow{display:flex;align-items:center;gap:8px;padding:5px 6px;border-bottom:1px solid #1d2a40;min-width:0}.porow:hover{background:#121c2d}.pooff .mono{opacity:.5;text-decoration:line-through}
+.pon{width:2.6em;text-align:right;color:#7d8ba3;font-size:12.5px;flex:none}.poname{flex:1;min-width:0;overflow-wrap:anywhere;cursor:pointer}.pom{display:block;font-size:12px;margin-left:24px}
+.pobtns{display:flex;gap:4px;flex:none}.btn.sm{padding:4px 9px;min-width:34px}.pomsg{background:#3a2e12;color:#f3c672;border-radius:8px;padding:6px 10px}.m.warn{color:#f3c672}
 @media (max-width:760px){.dlg .db{grid-template-columns:1fr;overflow:auto}.dlg .opts{border-right:0;border-bottom:1px solid var(--line);overflow:visible}.dlg .desc{overflow:visible}}
 /* Narrower windows (browser side panels, desktop scaling): shrink step by step, never cut content */
 @media (max-width:1240px){.app{grid-template-columns:64px 1fr}.nav{justify-content:center;padding:9px 0}.nav span,.nav .cnt,.side .about{display:none}
@@ -8040,9 +9182,11 @@ body.dropping::after{content:attr(data-drop);position:fixed;inset:12px;border:3p
 </div>
 <script>
 const T="__TOKEN__";
-const I18N={uk:{srsFor:"для SKSE",srsNotDeployed:"мод ще не розгорнуто",srsSwapped:"зараз підмінений на старішу версію",hmIntro:"Коротко про твою збірку: що встановлено, чи все готово до гри і що варто глянути.",hmSetup:"Збірка",hmProfiles:"профілів",hmNoColl:"без колекції",hmGame:"Гра",hmSkseOk:"під цю версію гри",hmSkseBad:"не збігається з версією гри або немає",hmAttention:"Варто глянути",hmAllGood:"Проблем не знайдено",hmNxWhy:"Увійди, щоб шукати й завантажувати моди та колекції прямо з програми. Після входу ключ більше не показується.",hmGameDir:"Папка гри",hmKeyPage:"Відкрити сторінку ключів",
+const I18N={uk:{rmMod:"Видалити мод",rmFolders:"Буде видалено папки",rmArchive:"Видалити й архів",rmKeepNote:"Якщо зняти галочку, архів лишиться, але більше не розпаковуватиметься.",rmNoArchive:"Архів цього мода невідомий (мод покладено в папку вручну) — видаляються лише папки.",rmTrash:"Усе йде в кошик системи, якщо він є, — помилку можна виправити. Мод прибирається з усіх профілів.",rmInGame:"Мод зараз розгорнуто: його файли лишаться в грі до наступного розгортання.",autoAll:"Все автоматично",autoAllHint:"Розпакує нові архіви, за потреби встановить SKSE (з Premium-ключем), встановить FOMOD з автоматичним вибором і розгорне профіль. Гру не запускає.",autoDone:"Готово — можна грати",autoDoneNoSkse:"Готово, але без SKSE",autoDoneText:"Архіви розпаковано, FOMOD встановлено, моди розгорнуто в гру. Запускай Skyrim як зазвичай.",autoFail:"Не завершено",autoFailText:"Один із кроків не вдався — подробиці в журналі.",autoWarn:"Варто глянути",
+srsFor:"для SKSE",srsNotDeployed:"мод ще не розгорнуто",srsSwapped:"зараз підмінений на старішу версію",hmIntro:"Коротко про твою збірку: що встановлено, чи все готово до гри і що варто глянути.",hmSetup:"Збірка",hmProfiles:"профілів",hmNoColl:"без колекції",hmGame:"Гра",hmSkseOk:"під цю версію гри",hmSkseBad:"не збігається з версією гри або немає",hmAttention:"Варто глянути",hmAllGood:"Проблем не знайдено",hmNxWhy:"Увійди, щоб шукати й завантажувати моди та колекції прямо з програми. Після входу ключ більше не показується.",hmGameDir:"Папка гри",hmKeyPage:"Відкрити сторінку ключів",
 logTail:"[… показано останні 2 МБ журналу; увесь — «Відкрити файл журналу»]",logProblems:"Лише помилки й попередження",logOpen:"Відкрити файл журналу",logSave:"Зберегти копію",logSaved:"Журнал збережено:",term:"Журнал і термінал",termHint:"Тут увесь журнал подій і консоль SME: ті самі параметри, що й у терміналі (python3 mod_engine.py …). Це не системна оболонка — лише команди SME. Питання програми (вибір FOMOD, так/ні) відповідаються тут же.",termPh:"--help, --deploy --dry-run, --fomod-redo …",termAnswer:"відповідь програмі (Enter — за замовчуванням)",termRun:"Виконати",termSend:"Надіслати",termStop:"Зупинити",termClear:"Очистити",termKonsole:"Відкрити Konsole",termKonsoleHint:"Справжній термінал у папці SME; команда sme = python3 mod_engine.py",termNoTerm:"Термінал не знайдено (Konsole, GNOME Terminal, xterm…).",termReal:"Справжній термінал (bash у папці SME, команда sme). Журнал дій інтерфейсу — вище.",termOnlyOpts:"Лише параметри SME, що починаються з «-» (наприклад --help). Це не системна оболонка.",termNoGui:"Інтерфейс уже відкрито.",
-diag:"Діагностика",dgIntro:"Шляхи, версії й стан усього, що використовує SME. «Копіювати звіт» — текст для повідомлення про проблему (без API-ключа).",dgCopy:"Копіювати звіт",dgCopied:"Звіт скопійовано",dgRefresh:"Оновити",dgLoading:"Збираю дані…",
+diag:"Діагностика",glogs:"Логи гри й модів",glIntro:"Логи, які пишуть гра, SKSE, SKSE-плагіни модів, Crash Logger/Trainwreck і Papyrus — тут, без пошуку по префіксу Proton. Програма їх лише читає.",glNone:"Логів не знайдено — запусти гру хоча б раз через SKSE.",glNoGame:"Папку гри не знайдено — вкажи її в налаштуваннях.",glLoading:"Шукаю логи…",glCrash:"Останній краш-лог",glCrashFresh:"з останньої сесії",glMentions:"Найчастіше згадуються (підказка, не вирок — ім'я в краш-лозі ще не означає, що винен цей мод)",glOpen:"Показати",glOpenFile:"Відкрити файл",glOpenDir:"Відкрити папку",glRefresh:"Оновити",glCopy:"Копіювати",glCopied:"Скопійовано",glProb:"Лише помилки й попередження",glFind:"Знайти в лозі",glOld:"старий",glOldHint:"Старший за останній запуск гри — від попередньої сесії або від уже видаленого мода",glErr:"помилок",glWarn:"попереджень",glCut:"[… показано останні 2 МБ; увесь лог — «Відкрити файл»]",glPapOn:"Лог скриптів Papyrus увімкнено.",glPapOff:"Лог скриптів Papyrus вимкнено (так за замовчуванням) — без нього проблем зі скриптами не видно.",glPapNo:"Skyrim.ini не знайдено — запусти гру хоча б раз.",glPapEnable:"Увімкнути лог Papyrus",glPapDisable:"Вимкнути лог Papyrus",glPapHint:"Змінює [Papyrus] у Skyrim.ini префікса (оригінал зберігається). Діє з наступного запуску; трохи навантажує гру.",glSel:"Вибери лог зі списку.",glNoMatch:"Нічого не знайдено.",glGroups:"Усі",
+dgIntro:"Шляхи, версії й стан усього, що використовує SME. «Копіювати звіт» — текст для повідомлення про проблему (без API-ключа).",dgCopy:"Копіювати звіт",dgCopied:"Звіт скопійовано",dgRefresh:"Оновити",dgLoading:"Збираю дані…",
 dgSme:"Skyrim Mod Engine",dgVersion:"Версія",dgScript:"Скрипт",dgPython:"Python",dgGui:"Інтерфейс",dgProfile:"Профіль",dgSettings:"Налаштування",
 dgGame:"Гра Skyrim SE/AE",dgGameDir:"Папка гри",dgSaved:"задано вручну",dgAuto:"знайдено автоматично",dgExe:"SkyrimSE.exe (версія)",dgSrsVer:"Зниження версії (Skyrim Runtime Swapper)",dgSrsNotDeployed:"мод ще не розгорнуто",dgData:"Папка Data",dgPrefix:"Префікс Proton",dgPluginsTxt:"Plugins.txt",dgSaves:"Збереження",dgLibs:"Бібліотеки Steam",dgRunning:"Гра запущена",
 dgSkse:"SKSE",dgLoader:"skse64_loader.exe",dgRuntimeDll:"SKSE під цю версію гри",dgAddrLib:"Address Library",dgSkseLog:"skse64.log",dgSkseCheck:"Остання перевірка SKSE",dgSrs:"Skyrim Runtime Swapper",
@@ -8065,14 +9209,15 @@ nxmPaste:"Вставити посилання nxm:// (якщо браузер н
 collFile:"Підключити collection.json",collDetach:"Відключити колекцію",collNoneQ:"Відключити колекцію від цього профілю? Моди й порядок лишаться.",collDropQ:"Підключити «%s» як колекцію профілю «%p»?",collBadFile:"Це не файл колекції Vortex/Nexus.",
 browse:"Браузер модів",fmChoose:"Вибрати варіанти",fmInstallManual:"Встановити нові з вибором",fmNone:"(нічого)",fmCancel:"Скасувати",fmNext:"Далі",fmClose:"Закрити",
 brSearch:"Назва мода на Nexus Mods…",brGo:"Шукати",brSortEnd:"Найпопулярніші",brSortDl:"Найбільше завантажень",brSortUpd:"Нещодавно оновлені",brSortNew:"Нові",brLoading:"Завантаження…",
-brHint:"Введи назву або просто натисни «Шукати».",brFound:"Знайдено",brHidden:"приховано 18+",brHave:"вже є",brDownload:"Завантажити",brFiles:"Файли",brPage:"Сторінка",brPrev:"Назад",brPageOf:"сторінка %p з %n",brNext:"Далі",
+brHint:"Введи назву або просто натисни «Шукати».",brKindMods:"Моди",brKindColl:"Колекції",brCollSearch:"Пошук колекцій",brCollIntro:"Колекції — готові збірки модів з порядком і вибором FOMOD від автора. Найзручніше ставити колекцію в окремий профіль: твій поточний лишиться як є.",brCollMods:"модів",brCollNew:"У новий профіль",brCollCur:"У поточний профіль",brCollOn:"підключена",brCollLogin:"Щоб підключити колекцію, увійди в Nexus (Головна).",brCollPr:"Після підключення відкриється сторінка «Колекція»: звідти Premium качає всі архіви сам.",brCollFree:"Після підключення відкриється сторінка «Колекція» зі списком архівів: без Premium кожен качається кнопкою «Mod Manager Download» на сайті.",brCollProfName:"Назва нового профілю:",brCollCurQ:"Підключити колекцію «%s» до профілю «%p»? Порядок модів і вибір FOMOD братимуться з колекції.",brNothing:"Нічого не знайдено.",brFound:"Знайдено",brHidden:"приховано 18+",brHave:"вже є",brDownload:"Завантажити",brFiles:"Файли",brPage:"Сторінка",brPrev:"Назад",brPageOf:"сторінка %p з %n",brNext:"Далі",
 brIntroPr:"Пошук на Nexus Mods. Premium: файл завантажиться й розпакується тут, без сайту.",brIntroFree:"Пошук на Nexus Mods. Без Premium Nexus дозволяє завантаження лише кнопкою на сайті: «Через сайт» відкриє потрібний файл, а кнопка «Mod Manager Download» передасть його сюди (потрібен обробник nxm у Налаштуваннях).",
 brIntroAnon:"Пошук на Nexus Mods. Щоб завантажувати, увійди в Nexus у Налаштуваннях.",brNeedLogin:"Увійди в Nexus у Налаштуваннях (API-ключ).",brFilesOf:"Файли мода",brMain:"основний",brViaSite:"Через сайт",
 brFreeNote:"Без Premium: відкриється сторінка файлу, натисни там «Mod Manager Download» (або «Slow download»). Програма отримає посилання nxm:// і завантажить сама.",brOpenManual:"Відкрий цю адресу в браузері:",brOpened:"відкрито в браузері",
 tagline:"Твій світ. Твої моди. Твоя історія.",log:"Журнал подій",home:"Головна",mods:"Моди",fomod:"Пакети (FOMOD)",plugins:"Порядок плагінів",deps:"Залежності",conflicts:"Конфлікти",deploy:"Розгортання",backups:"Резервні копії",settings:"Налаштування",
 about:"Більше, ніж просто мод-менеджер. Твій інструмент для створення світу.",ready:"Готово до гри",notdeployed:"Не розгорнуто",other:"У грі інший профіль",pending:"Є нерозгорнуті зміни",working:"Йде робота…",
 profile:"Поточний профіль",enabledMods:"Модів увімкнено",totalSize:"Загальний розмір",lastDeploy:"Останнє розгортання",play:"Запустити гру",deployPlay:"Розгорнути й запустити",playOnly:"Лише запустити",dry:"Пробний прогін (без змін)",
-addMods:"Додати моди",extract:"Розпакувати нові",installFomod:"Встановити пакети (FOMOD)",search:"Пошук модів…",allCats:"Усі категорії",onlyOff:"Лише вимкнені",onlyOn:"Лише увімкнені",
+addMods:"Додати моди",updCheck:"Перевірити оновлення",updCollHint:"Якщо це нова версія того самого мода: після перевірки оновлень «Розпакувати нові» замінить стару версію на місці.",updAll:"Оновити всі",updChecked:"Перевірено",updNever:"Оновлення ще не перевірялись",updNone:"нових версій немає",updAvail:"Є нові версії",updFilter:"Є оновлення",updNeedLogin:"Увійди в Nexus (Головна), щоб перевіряти оновлення модів.",updTitle:"Оновлення",updBtn:"Оновити",updSite:"Завантажити на сайті",updSiteHint:"Без Premium: натисни на сайті «Mod Manager Download», потім «Розпакувати нові» — нова версія замінить стару на місці.",updDownloaded:"Новий архів уже завантажено — розпакуй, щоб замінити стару версію.",updApply:"Розпакувати й замінити",updOutdated:"Файл на Nexus позначено застарілим, а заміни автор не вказав — подивись сторінку мода.",updGuessed:"Новий файл визначено за назвою (автор не позначив заміну) — перевір, що це той самий варіант.",updKeep:"Порядок, увімкнення і вибір FOMOD лишаються; старі папка й архів — у кошик. Потім — розгорнути.",
+extract:"Розпакувати нові",installFomod:"Встановити пакети (FOMOD)",search:"Пошук модів…",allCats:"Усі категорії",onlyOff:"Лише вимкнені",onlyOn:"Лише увімкнені",
 colName:"Назва моду",colCat:"Категорія",colVer:"Версія",colStatus:"Статус",active:"Активний",off:"Вимкнено",files:"файлів",pl:"плагін(и)",
 up:"Вище",down:"Нижче",top:"На початок (низький пріоритет)",bottom:"В кінець (найвищий пріоритет)",openFolder:"Відкрити папку",
 cat_skse:"SKSE",cat_ui:"Інтерфейс",cat_gfx:"Графіка",cat_audio:"Звук",cat_anim:"Анімації",cat_plugin:"Плагіни",cat_root:"Папка гри",cat_scripts:"Скрипти",cat_config:"Конфіги",cat_other:"Інше",
@@ -8081,7 +9226,7 @@ fomodChoice:"Вибір FOMOD",wins:"Перекриває",loses:"Перекри
 pendingBanner:"Порядок чи набір модів змінено — зміни потраплять у гру після розгортання.",deployNow:"Розгорнути",
 attention:"Потребують уваги (не розгортаються)",fomodPage:"FOMOD-пакети профілю",fomodHint:"«Вибрати варіанти» — майстер установки, як у Vortex/MO2: кроки, описи й картинки варіантів. Нова установка йде в окрему папку, стара лишається, доки нова не готова; «Скасувати» нічого не змінює.",
 installedTo:"Встановлено в",notInstalled:"Не встановлено",reinstallAuto:"Перевстановити всі (авто)",modeL:"Режим",
-pluginsPage:"Порядок плагінів останнього розгортання",noDeploy:"Ще нічого не розгорнуто.",lootUpdate:"Оновити masterlist LOOT і перевірити",
+pluginsPage:"Порядок плагінів",poHelp:"Що нижче у списку — те вантажиться пізніше й перемагає, коли два плагіни змінюють один запис (NPC, предмет, левел-лист). Гра сама завжди ставить masters (ESM, ESL, ESP з прапорцем ESM) перед звичайними ESP, а кожен плагін — після своїх masters, тож кнопки не дадуть порушити ці правила.",poAuto:"Порядок: автоматичний (LOOT і правила рушія)",poCustom:"Порядок: власний — LOOT його не змінює",poDirty:"Є незбережені зміни",poNotApplied:"Власний порядок збережено, але ще не в plugins.txt — застосується при розгортанні цього профілю",poSave:"Зберегти й застосувати",poCancel:"Скасувати зміни",poReset:"Повернути автоматичний порядок",poResetQ:"Забути власний порядок і повернути LOOT/правила рушія? Застосується одразу, якщо розгортання актуальне.",poFilter:"Знайти плагін",poMasters:"Masters",poMasterGrp:"Masters (вантажаться першими)",poRegularGrp:"Звичайні плагіни",poBadMaster:"{0} не може стояти вище свого master {1}",poBadDep:"{0} — master для {1}, нижче нього не опуститься",poGroup:"{0} — master, гра не вантажить його серед звичайних ESP",poGroupR:"{0} — звичайний плагін, гра вантажить його тільки після всіх masters",poOffDeps:"Разом з {0} вимкнено плагіни, яким він потрібен: {1}",poOnMasters:"Разом з {0} увімкнено його masters: {1}",poMissing:"файла немає в Data",poOther:"Зараз розгорнуто інший профіль — розгорни цей, щоб керувати його порядком.",poPending:"Список модів змінився після розгортання — збережений порядок застосується при наступному розгортанні.",noDeploy:"Ще нічого не розгорнуто.",lootUpdate:"Оновити masterlist LOOT і перевірити",
 depsPage:"Залежності між модами (за master-файлами плагінів)",problems:"Проблеми порядку",noProblems:"Проблем немає",
 conflictsPage:"Конфлікти файлів",recompute:"Перерахувати",notComputed:"Конфлікти ще не рахувалися.",winner:"Перемагає",loser:"Перекритий",count:"Файлів",dupPlugins:"Один плагін у кількох модах",identical:"Однакових файлів (не конфлікт)",
 deployPage:"Розгортання",deployBtn:"Розгорнути профіль",undeployBtn:"Повний відкат",skseBtn:"Перевірити SKSE",deployedProfile:"Розгорнутий профіль",filesDeployed:"Файлів у грі",incomplete:"Незавершене! Зроби відкат або розгорни знову.",
@@ -8114,9 +9259,11 @@ pArchives:"Папка з архівами модів",pMods:"Папка з ро�
 pHint:"Архіви можуть лежати де завгодно. Розпаковані моди краще тримати на тому ж диску, що й гру: інакше замість жорстких посилань будуть копії.",pMoveConfirm:"Перенести всі файли зі старої папки в нову?",
 psListDone:"Список файлів гри з SHA-1 збережено автоматично (місця не займає).",psApply:"Застосувати",psLater:"Пізніше",psDeployed:"Повний бекап можливий, коли моди не розгорнуто.",
 gbConfirm:"Повернути гру до стану «%s»? Моди буде прибрано, замінене відкладеться (не видалиться).",gbDelConfirm:"Видалити бекап «%s»?",gbLinkNote:"link: не займає місця, але не захищає від змін файлів на місці (оновлення Steam)."},
-en:{srsFor:"for SKSE",srsNotDeployed:"the mod is not deployed yet",srsSwapped:"currently swapped to the older version",hmIntro:"Your setup at a glance: what is installed, whether it is ready to play and what deserves a look.",hmSetup:"Setup",hmProfiles:"profiles",hmNoColl:"no collection",hmGame:"Game",hmSkseOk:"matches this game version",hmSkseBad:"does not match the game version or missing",hmAttention:"Worth a look",hmAllGood:"No problems found",hmNxWhy:"Log in to search and download mods and collections right from the program. After login the key is not shown again.",hmGameDir:"Game folder",hmKeyPage:"Open the API keys page",
+en:{rmMod:"Remove mod",rmFolders:"These folders will be removed",rmArchive:"Remove the archive too",rmKeepNote:"Untick to keep the archive; it will not be unpacked again.",rmNoArchive:"This mod's archive is unknown (the mod was put into the folder by hand) — only the folders are removed.",rmTrash:"Everything goes to the system trash when there is one, so a mistake can be undone. The mod is removed from every profile.",rmInGame:"The mod is deployed now: its files stay in the game until the next deployment.",autoAll:"All automatic",autoAllHint:"Unpacks new archives, installs SKSE when needed (with a Premium key), installs FOMODs with automatic choices and deploys the profile. Does not start the game.",autoDone:"Done — ready to play",autoDoneNoSkse:"Done, but without SKSE",autoDoneText:"Archives unpacked, FOMODs installed, mods deployed into the game. Start Skyrim as usual.",autoFail:"Not finished",autoFailText:"One of the steps failed — details are in the log.",autoWarn:"Worth a look",
+srsFor:"for SKSE",srsNotDeployed:"the mod is not deployed yet",srsSwapped:"currently swapped to the older version",hmIntro:"Your setup at a glance: what is installed, whether it is ready to play and what deserves a look.",hmSetup:"Setup",hmProfiles:"profiles",hmNoColl:"no collection",hmGame:"Game",hmSkseOk:"matches this game version",hmSkseBad:"does not match the game version or missing",hmAttention:"Worth a look",hmAllGood:"No problems found",hmNxWhy:"Log in to search and download mods and collections right from the program. After login the key is not shown again.",hmGameDir:"Game folder",hmKeyPage:"Open the API keys page",
 logTail:"[… the newest 2 MB of the log are shown; all of it — “Open the log file”]",logProblems:"Errors and warnings only",logOpen:"Open the log file",logSave:"Save a copy",logSaved:"Log saved:",term:"Log and terminal",termHint:"The whole event log and the SME console: the same options as in a terminal (python3 mod_engine.py …). This is not a system shell — SME commands only. The program's questions (FOMOD choices, yes/no) are answered right here.",termPh:"--help, --deploy --dry-run, --fomod-redo …",termAnswer:"answer to the program (Enter — default)",termRun:"Run",termSend:"Send",termStop:"Stop",termClear:"Clear",termKonsole:"Open Konsole",termKonsoleHint:"A real terminal in the SME folder; the sme command = python3 mod_engine.py",termNoTerm:"No terminal found (Konsole, GNOME Terminal, xterm…).",termReal:"A real terminal (bash in the SME folder, the sme command). The interface's action log is above.",termOnlyOpts:"SME options only, starting with “-” (e.g. --help). This is not a system shell.",termNoGui:"The interface is already open.",
-diag:"Diagnostics",dgIntro:"Paths, versions and the state of everything SME uses. “Copy report” gives a text for a problem report (no API key).",dgCopy:"Copy report",dgCopied:"Report copied",dgRefresh:"Refresh",dgLoading:"Collecting…",
+diag:"Diagnostics",glogs:"Game and mod logs",glIntro:"Logs written by the game, SKSE, mods' SKSE plugins, Crash Logger/Trainwreck and Papyrus — here, without digging through the Proton prefix. The program only reads them.",glNone:"No logs found — start the game through SKSE at least once.",glNoGame:"Game folder not found — set it in Settings.",glLoading:"Looking for logs…",glCrash:"Latest crash log",glCrashFresh:"from the last session",glMentions:"Mentioned most (a hint, not a verdict — a name in a crash log does not mean that mod is to blame)",glOpen:"Show",glOpenFile:"Open file",glOpenDir:"Open folder",glRefresh:"Refresh",glCopy:"Copy",glCopied:"Copied",glProb:"Errors and warnings only",glFind:"Find in log",glOld:"old",glOldHint:"Older than the last game start — from an earlier session or a mod already removed",glErr:"errors",glWarn:"warnings",glCut:"[… the newest 2 MB are shown; the whole log — “Open file”]",glPapOn:"The Papyrus script log is on.",glPapOff:"The Papyrus script log is off (the default) — without it script problems are invisible.",glPapNo:"Skyrim.ini not found — start the game at least once.",glPapEnable:"Turn on the Papyrus log",glPapDisable:"Turn off the Papyrus log",glPapHint:"Changes [Papyrus] in the prefix's Skyrim.ini (the original is kept). Takes effect on the next start; adds a little load.",glSel:"Pick a log from the list.",glNoMatch:"Nothing found.",glGroups:"All",
+dgIntro:"Paths, versions and the state of everything SME uses. “Copy report” gives a text for a problem report (no API key).",dgCopy:"Copy report",dgCopied:"Report copied",dgRefresh:"Refresh",dgLoading:"Collecting…",
 dgSme:"Skyrim Mod Engine",dgVersion:"Version",dgScript:"Script",dgPython:"Python",dgGui:"Interface",dgProfile:"Profile",dgSettings:"Settings",
 dgGame:"Skyrim SE/AE",dgGameDir:"Game folder",dgSaved:"set manually",dgAuto:"found automatically",dgExe:"SkyrimSE.exe (version)",dgSrsVer:"Downgrade (Skyrim Runtime Swapper)",dgSrsNotDeployed:"the mod is not deployed yet",dgData:"Data folder",dgPrefix:"Proton prefix",dgPluginsTxt:"Plugins.txt",dgSaves:"Saves",dgLibs:"Steam libraries",dgRunning:"Game running",
 dgSkse:"SKSE",dgLoader:"skse64_loader.exe",dgRuntimeDll:"SKSE for this game version",dgAddrLib:"Address Library",dgSkseLog:"skse64.log",dgSkseCheck:"Last SKSE check",dgSrs:"Skyrim Runtime Swapper",
@@ -8139,14 +9286,15 @@ nxmPaste:"Paste an nxm:// link (if the browser did not hand it over)",nxmGo:"Dow
 collFile:"Attach collection.json",collDetach:"Detach the collection",collNoneQ:"Detach the collection from this profile? Mods and order stay.",collDropQ:"Attach «%s» as the collection of profile «%p»?",collBadFile:"This is not a Vortex/Nexus collection file.",
 browse:"Mod browser",fmChoose:"Choose options",fmInstallManual:"Install new ones with choices",fmNone:"(none)",fmCancel:"Cancel",fmNext:"Next",fmClose:"Close",
 brSearch:"Mod name on Nexus Mods…",brGo:"Search",brSortEnd:"Most endorsed",brSortDl:"Most downloaded",brSortUpd:"Recently updated",brSortNew:"New",brLoading:"Loading…",
-brHint:"Type a name or just press Search.",brFound:"Found",brHidden:"18+ hidden",brHave:"installed",brDownload:"Download",brFiles:"Files",brPage:"Page",brPrev:"Back",brPageOf:"page %p of %n",brNext:"Next",
+brHint:"Type a name or just press Search.",brKindMods:"Mods",brKindColl:"Collections",brCollSearch:"Search collections",brCollIntro:"Collections are ready-made mod lists with the author\u2019s order and FOMOD choices. Best put into a separate profile: your current one stays as it is.",brCollMods:"mods",brCollNew:"Into a new profile",brCollCur:"Into the current profile",brCollOn:"attached",brCollLogin:"Log in to Nexus (Home) to attach a collection.",brCollPr:"After attaching, the Collection page opens: from there Premium downloads all archives by itself.",brCollFree:"After attaching, the Collection page opens with the list of archives: without Premium each one is downloaded with “Mod Manager Download” on the site.",brCollProfName:"Name of the new profile:",brCollCurQ:"Attach the collection “%s” to the profile “%p”? Mod order and FOMOD choices will come from the collection.",brNothing:"Nothing found.",brFound:"Found",brHidden:"18+ hidden",brHave:"installed",brDownload:"Download",brFiles:"Files",brPage:"Page",brPrev:"Back",brPageOf:"page %p of %n",brNext:"Next",
 brIntroPr:"Search Nexus Mods. Premium: the file is downloaded and unpacked here, no website needed.",brIntroFree:"Search Nexus Mods. Without Premium, Nexus allows downloads only through the button on the site: “Via site” opens the right file and its “Mod Manager Download” button hands it to this program (needs the nxm handler in Settings).",
 brIntroAnon:"Search Nexus Mods. To download, log in to Nexus in Settings.",brNeedLogin:"Log in to Nexus in Settings (API key).",brFilesOf:"Mod files",brMain:"main",brViaSite:"Via site",
 brFreeNote:"Without Premium: the file page opens; press “Mod Manager Download” (or “Slow download”) there. The program receives the nxm:// link and downloads by itself.",brOpenManual:"Open this address in a browser:",brOpened:"opened in the browser",
 tagline:"Your world. Your mods. Your story.",log:"Event log",home:"Home",mods:"Mods",fomod:"Packages (FOMOD)",plugins:"Plugin order",deps:"Dependencies",conflicts:"Conflicts",deploy:"Deployment",backups:"Backups",settings:"Settings",
 about:"More than a mod manager. Your tool for building a world.",ready:"Ready to play",notdeployed:"Not deployed",other:"Another profile is in the game",pending:"Undeployed changes",working:"Working…",
 profile:"Current profile",enabledMods:"Mods enabled",totalSize:"Total size",lastDeploy:"Last deployment",play:"Play",deployPlay:"Deploy and play",playOnly:"Just play",dry:"Dry run (no changes)",
-addMods:"Add mods",extract:"Extract new",installFomod:"Install packages (FOMOD)",search:"Search mods…",allCats:"All categories",onlyOff:"Disabled only",onlyOn:"Enabled only",
+addMods:"Add mods",updCheck:"Check for updates",updCollHint:"If this is a new version of the same mod: after checking for updates, “Unpack new” replaces the old version in place.",updAll:"Update all",updChecked:"Checked",updNever:"Updates not checked yet",updNone:"no new versions",updAvail:"New versions",updFilter:"Has updates",updNeedLogin:"Log in to Nexus (Home) to check mods for updates.",updTitle:"Update",updBtn:"Update",updSite:"Download on the site",updSiteHint:"Without Premium: press “Mod Manager Download” on the site, then “Unpack new” — the new version replaces the old one in place.",updDownloaded:"The new archive is already downloaded — unpack it to replace the old version.",updApply:"Unpack and replace",updOutdated:"The file is marked outdated on Nexus and the author named no replacement — see the mod page.",updGuessed:"The new file was matched by name (the author did not mark it as a replacement) — check it is the same variant.",updKeep:"Order, enabled state and FOMOD choices stay; the old folder and archive go to the trash. Then deploy.",
+extract:"Extract new",installFomod:"Install packages (FOMOD)",search:"Search mods…",allCats:"All categories",onlyOff:"Disabled only",onlyOn:"Enabled only",
 colName:"Mod name",colCat:"Category",colVer:"Version",colStatus:"Status",active:"Active",off:"Disabled",files:"files",pl:"plugin(s)",
 up:"Up",down:"Down",top:"To top (lowest priority)",bottom:"To bottom (highest priority)",openFolder:"Open folder",
 cat_skse:"SKSE",cat_ui:"Interface",cat_gfx:"Graphics",cat_audio:"Audio",cat_anim:"Animations",cat_plugin:"Plugins",cat_root:"Game folder",cat_scripts:"Scripts",cat_config:"Configs",cat_other:"Other",
@@ -8155,7 +9303,7 @@ fomodChoice:"FOMOD choice",wins:"Overrides",loses:"Overridden by",depAnalysis:"D
 pendingBanner:"Mod order or selection changed — the game gets the changes after deployment.",deployNow:"Deploy",
 attention:"Need attention (not deployed)",fomodPage:"FOMOD packages of this profile",fomodHint:"“Choose options” opens the installer wizard as in Vortex/MO2: steps, descriptions and option pictures. A new install goes to its own folder and the old one stays until the new one is ready; Cancel changes nothing.",
 installedTo:"Installed to",notInstalled:"Not installed",reinstallAuto:"Reinstall all (auto)",modeL:"Mode",
-pluginsPage:"Plugin order of the last deployment",noDeploy:"Nothing deployed yet.",lootUpdate:"Update LOOT masterlist and check",
+pluginsPage:"Plugin order",poHelp:"Lower in the list loads later and wins when two plugins change the same record (NPC, item, leveled list). The game itself always puts masters (ESM, ESL, ESP with the ESM flag) before regular ESPs and every plugin after its own masters, so the buttons will not let you break these rules.",poAuto:"Order: automatic (LOOT and engine rules)",poCustom:"Order: your own — LOOT does not change it",poDirty:"Unsaved changes",poNotApplied:"Your order is saved but not in plugins.txt yet — it applies when this profile is deployed",poSave:"Save and apply",poCancel:"Discard changes",poReset:"Back to automatic order",poResetQ:"Forget your own order and go back to LOOT/engine rules? Applied right away if the deployment is up to date.",poFilter:"Find a plugin",poMasters:"Masters",poMasterGrp:"Masters (load first)",poRegularGrp:"Regular plugins",poBadMaster:"{0} cannot be above its master {1}",poBadDep:"{0} is a master of {1} and cannot go below it",poGroup:"{0} is a master; the game does not load it among regular ESPs",poGroupR:"{0} is a regular plugin; the game loads it only after all masters",poOffDeps:"Disabled together with {0} — plugins that need it: {1}",poOnMasters:"Enabled together with {0} — its masters: {1}",poMissing:"file not in Data",poOther:"Another profile is deployed now — deploy this one to manage its order.",poPending:"The mod list changed since deployment — the saved order applies on the next deployment.",noDeploy:"Nothing deployed yet.",lootUpdate:"Update LOOT masterlist and check",
 depsPage:"Dependencies between mods (by plugin masters)",problems:"Order problems",noProblems:"No problems",
 conflictsPage:"File conflicts",recompute:"Recompute",notComputed:"Conflicts not computed yet.",winner:"Wins",loser:"Overridden",count:"Files",dupPlugins:"Same plugin in several mods",identical:"Identical files (not a conflict)",
 deployPage:"Deployment",deployBtn:"Deploy profile",undeployBtn:"Full rollback",skseBtn:"Check SKSE",deployedProfile:"Deployed profile",filesDeployed:"Files in the game",incomplete:"Incomplete! Roll back or deploy again.",
@@ -8197,7 +9345,7 @@ async function api(path,body){const o={headers:{"X-Token":T}};if(body!==undefine
  const j=await r.json().catch(()=>({}));if(r.status===500&&j.detail)showErr("ERROR "+path+"\n"+j.detail+"\n(mod_engine_output/gui_error.log)");return j}
 function showErr(m){LOGTXT+=(LOGTXT?"\n":"")+m;const pre=document.querySelector("#log");if(pre)pre.textContent=m.split("\n")[0];termPaint()}
 const ICONS={home:'<path d="M3 11l9-7 9 7v9h-6v-6H9v6H3z"/>',mods:'<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',fomod:'<path d="M12 2l9 5v10l-9 5-9-5V7zM12 12l9-5M12 12v10M12 12L3 7"/>',
-plugins:'<path d="M4 6h16M4 12h16M4 18h16"/>',term:'<path d="M4 5h16v14H4zM7 9l3 3-3 3M12 15h5"/>',diag:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',browse:'<path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M8 11h6M11 8v6"/>',collection:'<path d="M4 4h16v4H4zM6 8v12h12V8M10 12h4"/>',deps:'<path d="M12 3v6M6 21v-6l6-6 6 6v6"/>',conflicts:'<path d="M12 3l10 18H2zM12 10v5M12 18v1"/>',deploy:'<path d="M12 3l8 4-8 4-8-4zM4 12l8 4 8-4M4 17l8 4 8-4"/>',
+plugins:'<path d="M4 6h16M4 12h16M4 18h16"/>',term:'<path d="M4 5h16v14H4zM7 9l3 3-3 3M12 15h5"/>',diag:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',glogs:'<path d="M6 3h9l4 4v14H6zM15 3v4h4M9 11h7M9 15h7M9 19h4"/>',browse:'<path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4M8 11h6M11 8v6"/>',collection:'<path d="M4 4h16v4H4zM6 8v12h12V8M10 12h4"/>',deps:'<path d="M12 3v6M6 21v-6l6-6 6 6v6"/>',conflicts:'<path d="M12 3l10 18H2zM12 10v5M12 18v1"/>',deploy:'<path d="M12 3l8 4-8 4-8-4zM4 12l8 4 8-4M4 17l8 4 8-4"/>',
 backups:'<path d="M12 7v5l3 2M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/>',settings:'<path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.2V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.4 14H3a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 4.2 7.3l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9.7 3.4V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/>'};
 function icon(k){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">${ICONS[k]}</svg>`}
 function avatar(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;const hue=h%360;const w=n.replace(/^[^\p{L}\p{N}]+/u,"").split(/\s+/).filter(Boolean);
@@ -8205,7 +9353,7 @@ function avatar(n){let h=0;for(const c of n)h=(h*31+c.charCodeAt(0))>>>0;const h
 function fmtSize(b){if(!b)return"0 B";const u=["B","KiB","MiB","GiB","TiB"];let i=0;while(b>=1024&&i<4){b/=1024;i++}return (i?b.toFixed(1):b)+" "+u[i]}
 function fmtDate(s){if(!s)return"—";const d=new Date(s);return isNaN(d)?s:d.toLocaleString(L==="uk"?"uk-UA":"en-GB",{dateStyle:"short",timeStyle:"short"})}
 function nav(){const c=S.conflicts.pairs_total,pr=S.problems.length;
- const items=[["home",""],["mods",S.mods.length],["browse",""],["fomod",S.fomods.length],["collection",S.collection?S.collection.mods.filter(m=>!m.have&&!m.optional).length||"":""],["plugins",S.deployed?S.deployed.plugins.length:""],["deps",pr?pr:""],["conflicts",c||""],["deploy",""],["backups",(!S.protection.asked||!S.baseline)?"!":""],["diag",""],["term",""],["settings",""]];
+ const items=[["home",""],["mods",S.mods.length],["browse",""],["fomod",S.fomods.length],["collection",S.collection?S.collection.mods.filter(m=>!m.have&&!m.optional).length||"":""],["plugins",S.deployed?S.deployed.plugins.length:""],["deps",pr?pr:""],["conflicts",c||""],["deploy",""],["backups",(!S.protection.asked||!S.baseline)?"!":""],["diag",""],["glogs",S.log_alert?"!":""],["term",""],["settings",""]];
  $("#side").innerHTML=items.map(([k,n])=>`<button class="nav ${page===k?"on":""}" data-p="${k}">${icon(k)}<span>${t(k)}</span>${n!==""?`<span class="cnt ${(k==="deps"&&pr)||(k==="conflicts"&&c)||n==="!"?"bad":""}">${n}</span>`:""}</button>`).join("")+
  `<div class="about"><b>Skyrim Mod Engine</b>v${esc(S.version)}<hr style="border:0;border-top:1px solid var(--line)">${t("about")}</div>`;
  document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{page=b.dataset.p;render()})}
@@ -8224,7 +9372,18 @@ function protLine(){const pr=S.protection||{},ok=s=>`<span class="okline">✔</s
 function bindStatus(){const ps=$("#profSel");if(ps)ps.onchange=()=>run("profile",ps.value);
  const pb=$("#playBtn");if(pb)pb.onclick=()=>{const d=S.deployed;(!d||d.profile!==S.profile||S.pending||!d.complete)?run("deploy_launch"):launch()};
  const pm=$("#playMore");if(pm)pm.onclick=ev=>menu(ev,[[t("deployPlay"),()=>run("deploy_launch")],[t("playOnly"),launch],[t("dry"),()=>run("dry")]])}
-function filtered(){return S.mods.filter(m=>(!q||m.name.toLowerCase().includes(q.toLowerCase()))&&(!cat||(cat==="__on"?m.enabled:cat==="__off"?!m.enabled:m.category===cat)))}
+function filtered(){return S.mods.filter(m=>(!q||m.name.toLowerCase().includes(q.toLowerCase()))&&(!cat||(cat==="__on"?m.enabled:cat==="__off"?!m.enabled:cat==="__upd"?m.update&&m.update.status!=="outdated":m.category===cat)))}
+const nxUrl=(mod,f)=>`https://www.nexusmods.com/skyrimspecialedition/mods/${+mod}?tab=files&file_id=${+f}&nmm=1`;
+function updBar(){if(!S.nexus)return `<span class="m" style="font-size:12.5px">${t("updNeedLogin")}</span>`;const u=S.updates||{},n=u.count||0;
+ return `<button class="btn" onclick="run('check_updates')" ${running?"disabled":""}>⟳ ${t("updCheck")}</button>${n&&S.nexus.premium?`<button class="btn pri" onclick="run('update_all')" ${running?"disabled":""}>⬆ ${t("updAll")} (${n})</button>`:""}
+ <span class="m" style="font-size:12.5px">${u.checked_at?t("updChecked")+": "+fmtDate(new Date(u.checked_at*1000).toISOString())+(n?` · <a class="link" onclick="cat='__upd';renderMain()">${t("updAvail")}: ${n}</a>`:" · "+t("updNone")):t("updNever")}</span>`}
+function updBox(m){const u=m.update;if(!u)return "";
+ if(u.status==="outdated")return `<div class="dsec"><h4>${t("updTitle")}</h4><div class="warnline">${t("updOutdated")}</div>${m.nexus_id?`<a class="link" href="https://www.nexusmods.com/skyrimspecialedition/mods/${+m.nexus_id}?tab=files" target="_blank" rel="noopener">↗ ${t("nexus")}</a>`:""}</div>`;
+ const pr=S.nexus&&S.nexus.premium,dis=running?" disabled":"";
+ const btn=u.status==="downloaded"?`<button class="btn pri"${dis} onclick="run('scan')">${t("updApply")}</button><div class="m" style="font-size:12.5px;margin-top:4px">${t("updDownloaded")}</div>`
+  :pr?`<button class="btn pri"${dis} onclick="run('update_mod',${esc(JSON.stringify(m.fomod_of||m.name))})">⬆ ${t("updBtn")}</button>`
+  :`<button class="btn pri" onclick="api('/api/open_url',{url:nxUrl(${+u.mod},${+u.target})})">↗ ${t("updSite")}</button><div class="m" style="font-size:12.5px;margin-top:4px">${t("updSiteHint")}</div>`;
+ return `<div class="dsec"><h4>${t("updTitle")}</h4><div>${esc(u.cur_version||"?")} → <b>${esc(u.version||"?")}</b>${u.size?` · ${fmtSize(u.size)}`:""}</div>${u.guessed?`<div class="warnline" style="font-size:12.5px">${t("updGuessed")}</div>`:""}<div style="margin-top:6px">${btn}</div><div class="m" style="font-size:12px;margin-top:4px">${t("updKeep")}</div></div>`}
 function protSetup(){const dep=!!S.deployed;return `<div class="card" style="padding:14px;border-color:#2f7fd4"><h3 style="margin:0 0 4px">🛡 ${t("psTitle")}</h3><p class="m" style="margin:0 0 8px">${t("psHint")}</p>
  ${S.baseline?`<div class="okline" style="margin:4px 0">✔ ${t("psListDone")}</div>`:""}
  <label style="display:block;margin:6px 0"><input type="checkbox" id="psInc"> ${t("psInc")}</label>
@@ -8236,17 +9395,18 @@ async function protApply(){const b=document.querySelector('input[name=psB]:check
  if(r.error){alert(r.error==="busy"?t("busy"):r.error);return}if(r.job){running=true;jobLine()}await refresh()}
 function modsView(){const cats=[...new Set(S.mods.map(m=>m.category))];const list=filtered();
  const gbBan=(!S.protection.asked&&!protLater)?`<div class="banner">🛡 ${t("psTitle")} <button class="btn pri" style="margin-left:auto" onclick="page='backups';render()">${t("gbBannerBtn")}</button><button class="btn" onclick="protLater=true;renderMain()">${t("psLater")}</button></div>`:"";
- const colBan=(S.collisions||[]).length?`<div class="banner">⚠ ${t("collisionBan")}: ${esc(S.collisions.slice(0,4).join(", "))}${S.collisions.length>4?" …":""} <button class="btn pri" style="margin-left:auto" onclick="run('scan_suffix')">${t("extractSuffix")}</button></div>`:"";
+ const colBan=(S.collisions||[]).length?`<div class="banner">⚠ ${t("collisionBan")}: ${esc(S.collisions.slice(0,4).join(", "))}${S.collisions.length>4?" …":""} ${S.nexus?`<button class="btn" style="margin-left:auto" onclick="run('check_updates')" title="${t("updCollHint")}">⟳ ${t("updCheck")}</button>`:""}<button class="btn pri" style="${S.nexus?"":"margin-left:auto"}" onclick="run('scan_suffix')">${t("extractSuffix")}</button></div>`:"";
  const dropHint=`<div class="m" style="color:var(--mut);font-size:12.5px;margin:-4px 0 2px;display:flex;gap:14px;flex-wrap:wrap;align-items:center"><span>${t(S.drop_extract?"dropHintX":"dropHint")}</span>
  <label style="display:flex;gap:6px;align-items:center;color:var(--text)"><input type="checkbox" ${S.drop_extract?"checked":""} onchange="api('/api/set',{drop_extract:this.checked}).then(refresh)">${t("dropExtract")}</label></div>`;
  const ban=S.pending&&S.deployed&&S.deployed.profile===S.profile?`<div class="banner">⚠ ${t("pendingBanner")} <button class="btn pri" style="margin-left:auto" onclick="run('deploy')">${t("deployNow")}</button></div>`:"";
- return `${gbBan}${ban}${colBan}<div class="toolbar"><button class="btn pri" id="addBtn">＋ ${t("addMods")}</button><button class="btn" onclick="run('scan')">⤓ ${t("extract")}</button><button class="btn" onclick="run('fomod_auto')">⬢ ${t("installFomod")}</button></div>${dropHint}
+ return `${gbBan}${ban}${colBan}<div class="toolbar"><button class="btn pri" id="addBtn">＋ ${t("addMods")}</button><button class="btn" onclick="run('scan')">⤓ ${t("extract")}</button><button class="btn" onclick="run('fomod_auto')">⬢ ${t("installFomod")}</button><button class="btn go" onclick="window._noticeArmed=true;run('auto_all')" ${running?"disabled":""} title="${t("autoAllHint")}">⚡ ${t("autoAll")}</button></div>${dropHint}
  <div class="toolbar"><div class="search">⌕<input id="q" placeholder="${t("search")}" value="${esc(q)}"></div>
- <select id="cat"><option value="">${t("allCats")}</option><option value="__on" ${cat==="__on"?"selected":""}>${t("onlyOn")}</option><option value="__off" ${cat==="__off"?"selected":""}>${t("onlyOff")}</option>${cats.map(c=>`<option value="${c}" ${cat===c?"selected":""}>${t("cat_"+c)}</option>`).join("")}</select></div>
+ <select id="cat"><option value="">${t("allCats")}</option><option value="__on" ${cat==="__on"?"selected":""}>${t("onlyOn")}</option><option value="__off" ${cat==="__off"?"selected":""}>${t("onlyOff")}</option>${(S.updates||{}).count?`<option value="__upd" ${cat==="__upd"?"selected":""}>${t("updFilter")} (${S.updates.count})</option>`:""}${cats.map(c=>`<option value="${c}" ${cat===c?"selected":""}>${t("cat_"+c)}</option>`).join("")}</select></div>
+ <div class="toolbar" style="flex-wrap:wrap;align-items:center">${updBar()}</div>
  <div class="card tablewrap">${S.mods.length?`<table><thead><tr><th class="c-num">#</th><th>${t("colName")}</th><th class="c-cat">${t("colCat")}</th><th class="c-ver">${t("colVer")}</th><th>${t("colStatus")}</th><th></th></tr></thead><tbody>
  ${list.map(m=>`<tr class="row ${sel===m.name?"sel":""}" draggable="true" data-n="${esc(m.name)}"><td style="color:var(--mut)">${m.index+1}</td>
  <td><div class="mname">${avatar(m.name)}<div><div class="n">${esc(m.name)}</div><div class="s">${m.files} ${t("files")}${m.plugins.length?" · "+m.plugins.length+" "+t("pl"):""} · ${esc(m.size||"")}</div></div></div></td>
- <td class="c-cat"><span class="chip c-${m.category}">${t("cat_"+m.category)}</span></td><td class="c-ver">${esc(m.version||"—")}</td>
+ <td class="c-cat"><span class="chip c-${m.category}">${t("cat_"+m.category)}</span></td><td class="c-ver">${esc(m.version||"—")}${m.update&&m.update.status!=="outdated"?` <span class="badge up" title="${t("updAvail")}">→ ${esc(m.update.version||"?")}</span>`:m.update?` <span class="badge old" title="${t("updOutdated")}">!</span>`:""}</td>
  <td><div class="st"><button class="sw ${m.enabled?"on":""}" data-sw="${esc(m.name)}"></button><span class="${m.enabled?"on":"off"}">${t(m.enabled?"active":"off")}</span></div></td>
  <td><button class="dots" data-menu="${esc(m.name)}">⋮</button></td></tr>`).join("")}</tbody></table>`:`<div class="empty">${t("noMods")}</div>`}</div>`}
 function bindMods(){const qi=$("#q");if(qi)qi.oninput=()=>{q=qi.value;const p=qi.selectionStart;renderMain();const n=$("#q");n.focus();n.setSelectionRange(p,p)};
@@ -8256,18 +9416,20 @@ function bindMods(){const qi=$("#q");if(qi)qi.oninput=()=>{q=qi.value;const p=qi
   r.ondrop=async ev=>{ev.preventDefault();r.classList.remove("drag-over");if(!dragName||dragName===r.dataset.n)return;const to=S.mods.find(m=>m.name===r.dataset.n).index;await move(dragName,to)}});
  document.querySelectorAll("[data-sw]").forEach(b=>b.onclick=async()=>{const m=S.mods.find(x=>x.name===b.dataset.sw);await post("/api/toggle",{name:m.name,enabled:!m.enabled})});
  const os=$("#openSel");if(os)os.onclick=()=>api("/api/open",{what:"mod:"+sel});
+ const rs=$("#rmSel");if(rs)rs.onclick=()=>removeDlg(S.mods.find(x=>x.name===sel));
  document.querySelectorAll("[data-menu]").forEach(b=>b.onclick=ev=>{const m=S.mods.find(x=>x.name===b.dataset.menu);
-  menu(ev,[[t("up"),()=>move(m.name,m.index-1)],[t("down"),()=>move(m.name,m.index+1)],[t("top"),()=>move(m.name,0)],[t("bottom"),()=>move(m.name,S.mods.length)],[t("openFolder"),()=>api("/api/open",{what:"mod:"+m.name})]])})}
+  menu(ev,[[t("up"),()=>move(m.name,m.index-1)],[t("down"),()=>move(m.name,m.index+1)],[t("top"),()=>move(m.name,0)],[t("bottom"),()=>move(m.name,S.mods.length)],[t("openFolder"),()=>api("/api/open",{what:"mod:"+m.name})],[t("rmMod"),()=>removeDlg(m)]])})}
 async function post(p,b){const r=await api(p,b);if(r.error==="busy")alert(t("busy"));await refresh()}
 async function move(n,to){await post("/api/move",{name:n,to:Math.max(0,to)})}
 function detail(){const m=S.mods.find(x=>x.name===sel);if(!m)return `<div class="card detail"><div class="empty">${t("noSel")}</div></div>`;
  const li=a=>a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"—";
  const steps=m.fomod_steps?m.fomod_steps.map(s=>s.groups.map(g=>`<li><span style="color:var(--mut)">${esc(String(g.group).replace(/:\s*$/,""))}:</span> ${esc((g.selected||[]).join(", ")||"—")}</li>`).join("")).join(""):"";
- return `<div class="card detail"><div class="dhead">${avatar(m.name)}<div><div class="n">${esc(m.name)}</div><div class="v">${m.version?"v"+esc(m.version):""}</div></div></div>
+ return `<div class="card detail"><div class="dhead">${avatar(m.name)}<div><div class="n">${esc(m.name)}</div><div class="v">${m.version?"v"+esc(m.version):""}</div></div></div>${updBox(m)}
  <div class="dsec"><div class="kv"><span class="k">${t("category")}:</span><span>${t("cat_"+m.category)}</span><span class="k">${t("size")}:</span><span>${esc(m.size)}</span>
  <span class="k">${t("filesCount")}:</span><span>${m.files}</span><span class="k">${t("order")}:</span><span>${m.index+1}</span>${m.archive?`<span class="k">${t("archive")}:</span><span style="word-break:break-all">${esc(m.archive)}</span>`:""}</div>
  ${m.nexus_id?`<div style="margin-top:8px"><a class="link" href="https://www.nexusmods.com/skyrimspecialedition/mods/${m.nexus_id}" target="_blank" rel="noopener">↗ ${t("nexus")}</a></div>`:""}
- <div style="margin-top:6px"><a class="link" id="openSel">📂 ${t("openFolder")}</a></div></div>
+ <div style="margin-top:6px"><a class="link" id="openSel">📂 ${t("openFolder")}</a></div>
+ <div style="margin-top:10px"><button class="btn danger" style="padding:5px 10px" id="rmSel" ${running?"disabled":""}>${t("rmMod")}</button></div></div>
  ${m.plugins.length?`<div class="dsec"><h4>${t("pluginsL")}</h4>${li(m.plugins)}</div>`:""}${m.skse_plugins.length?`<div class="dsec"><h4>${t("sksePl")}</h4>${li(m.skse_plugins)}</div>`:""}
  ${m.bsa.length?`<div class="dsec"><h4>${t("bsa")}</h4>${li(m.bsa)}</div>`:""}${steps?`<div class="dsec"><h4>${t("fomodChoice")}</h4><ul>${steps}</ul></div>`:""}
  <div class="dsec"><h4>${t("depAnalysis")}</h4>${m.deps.length?`<div>${t("dependsOn")}:</div>${li(m.deps)}`:""}${m.rdeps.length?`<div>${t("neededBy")}:</div>${li(m.rdeps)}`:""}
@@ -8289,7 +9451,38 @@ function collectionView(){const c=S.collection,pr=S.nexus&&S.nexus.premium;
  ${fileBox}${fetchBox}${!pr&&miss.length?`<p class="m">${t("collFreeHint")}</p>`:""}
  ${miss.length?`<h3>${t("collMissing")}: ${miss.length}</h3><table><tbody>${miss.map(m=>`<tr><td>${esc(m.name)} <span style="color:var(--mut)">${esc(m.version||"")}</span>${m.optional?` <span class="chip">${t("optional")}</span>`:""}</td>
  <td style="text-align:right">${m.mod_id&&m.file_id?`<a class="btn" style="padding:4px 10px;white-space:nowrap" target="_blank" rel="noopener" href="https://www.nexusmods.com/skyrimspecialedition/mods/${+m.mod_id}?tab=files&file_id=${+m.file_id}&nmm=1">${t("collDl")}</a>`:"—"}</td></tr>`).join("")}</tbody></table>`:""}`)}
-function pluginsView(){const d=S.deployed;return pageWrap(`<h2>${t("pluginsPage")}</h2>${d?`<p class="m">${esc(d.profile)} · ${fmtDate(d.at)} · ${d.plugins.length}</p><div class="toolbar" style="margin-bottom:10px"><button class="btn" onclick="run('loot_update')">${t("lootUpdate")}</button></div><ol class="mono">${d.plugins.map(p=>`<li>${esc(p)}</li>`).join("")}</ol>`:`<p class="m">${t("noDeploy")}</p>`}`)}
+let PO=null,POMSG="",POQ="";
+function poItems(){const o=S.plugin_order||{items:[]};return PO||o.items.map(x=>({...x,ms:[...x.ms]}))}
+function poFmt(k,...a){return t(k).replace(/\{(\d)\}/g,(_,i)=>a[+i])}
+function poMove(i,to){const a=poItems(),it=a[i],rest=a.filter((_,k)=>k!==i),low=x=>x.toLowerCase();
+ const nm=rest.filter(x=>x.m).length;let lo=it.m?0:nm,hi=it.m?nm:rest.length,why="";
+ rest.forEach((x,k)=>{if(it.ms.some(m=>low(m)===low(x.n))&&k+1>lo){lo=k+1;if(to<lo)why=poFmt("poBadMaster",it.n,x.n)}});
+ rest.forEach((x,k)=>{if(x.ms.some(m=>low(m)===low(it.n))&&k<hi){hi=k;if(to>hi)why=poFmt("poBadDep",it.n,x.n)}});
+ if(to<lo){if(!why&&!it.m)why=poFmt("poGroupR",it.n);to=lo}
+ if(to>hi){if(!why&&it.m)why=poFmt("poGroup",it.n);to=hi}
+ rest.splice(to,0,it);PO=rest;POMSG=why;renderMain();const r=document.querySelector(`[data-po="${CSS.escape(it.n)}"]`);if(r)r.scrollIntoView({block:"nearest"})}
+function poToggle(i,on){const a=poItems(),low=x=>x.toLowerCase(),it=a[i];it.on=on;PO=a;const ch=[];
+ const walk=n=>{for(const x of a){if(on){if(low(x.n)!==low(n))continue;for(const m of x.ms){const y=a.find(z=>low(z.n)===low(m));if(y&&!y.on){y.on=true;ch.push(y.n);walk(y.n)}}}
+  else if(x.on&&x.ms.some(m=>low(m)===low(n))){x.on=false;ch.push(x.n);walk(x.n)}}};walk(it.n);
+ POMSG=ch.length?poFmt(on?"poOnMasters":"poOffDeps",it.n,ch.join(", ")):"";renderMain()}
+function poDirty(){const o=(S.plugin_order||{items:[]}).items;return !!PO&&(PO.length!==o.length||PO.some((x,k)=>x.n!==o[k].n||x.on!==o[k].on))}
+function poSave(){const a=poItems();const v=JSON.stringify({order:a.map(x=>x.n),disabled:a.filter(x=>!x.on).map(x=>x.n)});PO=null;POMSG="";run("plugin_order",v)}
+function poReset(){if(!confirm(t("poResetQ")))return;PO=null;POMSG="";run("plugin_order","reset")}
+function pluginsView(){const d=S.deployed,o=S.plugin_order||{items:[]};
+ if(!d||!o.items.length)return pageWrap(`<h2>${t("pluginsPage")}</h2><p class="m">${t("noDeploy")}</p>`);
+ const a=poItems(),dirty=poDirty(),q=POQ.trim().toLowerCase(),dis=running?" disabled":"";
+ let st=o.custom?t("poCustom"):t("poAuto");const notes=[];
+ if(!o.same_profile)notes.push(t("poOther"));else if(o.custom&&o.applied===false)notes.push(S.pending?t("poPending"):t("poNotApplied"));
+ const nm=a.filter(x=>x.m).length;let rows="";
+ a.forEach((x,i)=>{if(i===0&&x.m)rows+=`<li class="pogrp">${t("poMasterGrp")}</li>`;if(i===nm)rows+=`<li class="pogrp">${t("poRegularGrp")}</li>`;
+  if(q&&!x.n.toLowerCase().includes(q))return;
+  const b=(x.m?`<span class="badge">${x.l?"ESL":(x.n.toLowerCase().endsWith(".esm")?"ESM":"ESM-flag")}</span>`:(x.l?`<span class="badge">ESL</span>`:""))+(x.miss?` <span class="badge bad">${t("poMissing")}</span>`:"");
+  rows+=`<li class="porow${x.on?"":" pooff"}" data-po="${esc(x.n)}"><span class="pon">${i+1}</span><label class="poname"><input type="checkbox" ${x.on?"checked":""}${dis} onchange="poToggle(${i},this.checked)"> <span class="mono">${esc(x.n)}</span> ${b}${x.ms.length?`<span class="m pom">${t("poMasters")}: ${esc(x.ms.join(", "))}</span>`:""}</label><span class="pobtns"><button class="btn sm" title="${t("top")}"${dis} onclick="poMove(${i},0)">⤒</button><button class="btn sm" title="${t("up")}"${dis} onclick="poMove(${i},${i-1})">↑</button><button class="btn sm" title="${t("down")}"${dis} onclick="poMove(${i},${i+1})">↓</button><button class="btn sm" title="${t("bottom")}"${dis} onclick="poMove(${i},${a.length})">⤓</button></span></li>`});
+ return pageWrap(`<h2>${t("pluginsPage")}</h2><p class="m">${esc(d.profile)} · ${fmtDate(d.at)} · ${a.length}</p><p class="m">${t("poHelp")}</p>
+ <p><b>${dirty?t("poDirty"):st}</b></p>${notes.map(n=>`<p class="m warn">${esc(n)}</p>`).join("")}${POMSG?`<p class="pomsg">${esc(POMSG)}</p>`:""}
+ <div class="toolbar" style="margin-bottom:10px;flex-wrap:wrap"><button class="btn pri"${dirty&&!running?"":" disabled"} onclick="poSave()">${t("poSave")}</button><button class="btn"${dirty?"":" disabled"} onclick="PO=null;POMSG='';renderMain()">${t("poCancel")}</button><button class="btn"${o.custom&&!running?"":" disabled"} onclick="poReset()">${t("poReset")}</button><button class="btn"${dis} onclick="run('loot_update')">${t("lootUpdate")}</button></div>
+ <div class="search" style="max-width:420px;margin-bottom:8px"><input id="poQ" placeholder="${t("poFilter")}" value="${esc(POQ)}" oninput="POQ=this.value;const p=this.selectionStart;renderMain();const e=$('#poQ');e.focus();e.setSelectionRange(p,p)"></div>
+ <ol class="polist">${rows}</ol>`)}
 function depsView(){const withDeps=S.mods.filter(m=>m.deps.length);return pageWrap(`<h2>${t("depsPage")}</h2><h3>${t("problems")}</h3>${S.problems.length?S.problems.map(p=>`<div class="badline">⚠ ${esc(p)}</div>`).join(""):`<div class="okline">✔ ${t("noProblems")}</div>`}
  <div class="grid2" style="margin-top:14px">${withDeps.map(m=>`<div class="box"><b>${esc(m.name)}</b><div style="font-size:12.5px;color:var(--mut)">${t("dependsOn")}:</div><ul style="margin:0;padding-left:18px">${m.deps.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div>`)}
 function conflictsView(){const c=S.conflicts;return pageWrap(`<h2>${t("conflictsPage")}</h2><div class="toolbar" style="margin-bottom:12px"><button class="btn pri" onclick="run('conflicts')">${t("recompute")}</button></div>
@@ -8352,6 +9545,24 @@ function settingsView(){const d=S.deployed;return pageWrap(`<h2>${t("settingsPag
 function bindBackups(){document.querySelectorAll("[data-gb]").forEach(b=>b.onclick=()=>{const n=b.dataset.n,k=b.dataset.gb;
  if(k==="restore"&&!confirm(t("gbConfirm").replace("%s",n)))return;if(k==="delete"&&!confirm(t("gbDelConfirm").replace("%s",n)))return;
  run(k==="restore"?"restore_game":k==="verify"?"backup_verify":"backup_delete",n)})}
+/* ---- result of the one-button setup ---- */
+let NOTICE_SEEN=0;
+function showNotice(n){if(!n||n.id<=NOTICE_SEEN)return;if(!NOTICE_SEEN&&!running&&!window._noticeArmed){NOTICE_SEEN=n.id;return}NOTICE_SEEN=n.id;
+ const w=(n.warnings||[]).map(x=>`<li>${esc(x)}</li>`).join("")+(n.more?`<li>… +${n.more}</li>`:"");
+ dlg("files",`<div class="dh"><b class="${n.ok?(n.no_skse?"warnline":"okline"):"badline"}" style="font-size:18px">${n.ok?(n.no_skse?"⚠ "+t("autoDoneNoSkse"):"✔ "+t("autoDone")):"✖ "+t("autoFail")}</b></div>
+  <div class="db">${n.ok?`<p>${t("autoDoneText")}</p>`:`<p>${t("autoFailText")}</p>`}${w?`<p class="warnline">${t("autoWarn")}:</p><ul class="mono" style="font-size:12px">${w}</ul>`:""}</div>
+  <div class="df">${!n.ok||w?`<button class="btn" id="ntLog">${t("term")}</button>`:""}<button class="btn pri" id="ntOk">OK</button></div>`);
+ $("#ntOk").onclick=closeDlg;const l=$("#ntLog");if(l)l.onclick=()=>{closeDlg();PROBONLY=!n.ok;page="term";render()}}
+/* ---- removing a mod ---- */
+function removeDlg(m){if(!m)return;if(running){alert(t("busy"));return}
+ const base=m.fomod_of||m.name,folders=S.mods.filter(x=>x.name===base||x.fomod_of===base).map(x=>x.name);if(m.fomod_of&&!folders.includes(base))folders.unshift(base);
+ const inGame=S.deployed&&m.enabled&&S.deployed.profile===S.profile;
+ const o=dlg("files",`<div class="dh"><b>${t("rmMod")}: ${esc(base)}</b></div><div class="db">
+  <p>${t("rmFolders")}:</p><ul class="mono">${[...new Set(folders)].map(f=>`<li>${esc(f)}</li>`).join("")}</ul>
+  ${m.archive?`<label style="display:flex;gap:8px;align-items:flex-start;margin:10px 0"><input type="checkbox" id="rmArc" checked><span>${t("rmArchive")}: <span class="mono">${esc(m.archive)}</span><br><span style="color:var(--mut);font-size:12.5px">${t("rmKeepNote")}</span></span></label>`:`<p class="m" style="color:var(--mut)">${t("rmNoArchive")}</p>`}
+  <p class="m" style="color:var(--mut)">${t("rmTrash")}</p>${inGame?`<p class="warnline">⚠ ${t("rmInGame")}</p>`:""}</div>
+  <div class="df"><button class="btn" id="rmNo">${t("fmCancel")}</button><button class="btn danger" id="rmYes">${t("rmMod")}</button></div>`);
+ $("#rmNo").onclick=closeDlg;$("#rmYes").onclick=async()=>{const a=$("#rmArc");closeDlg();await run(a&&!a.checked?"remove_mod_keep":"remove_mod",base)}}
 /* ---- home: what this setup is and what needs attention ---- */
 function homeView(){const on=S.mods.filter(m=>m.enabled),d=S.deployed,c=S.collection,g=S.game||{},k=S.skse,pr=S.protection||{},gb=S.game_backups||[];
  const ok=v=>`<span class="okline">✔</span>`,warn=v=>`<span class="warnline">⚠</span>`,bad=v=>`<span class="badline">✖</span>`;
@@ -8383,7 +9594,8 @@ function homeView(){const on=S.mods.filter(m=>m.enabled),d=S.deployed,c=S.collec
  if((S.collisions||[]).length)att.push(row(warn(),t("collisionBan"),`${S.collisions.length}`,"mods"));
  if(S.overwrite.total)att.push(row("•",t("overwrite"),`${S.overwrite.total} ${t("files")}`,"backups"));
  const attn=`<div class="box"><b>${t("hmAttention")}</b>${att.length?att.join(""):`<div style="margin-top:8px">${ok()} ${t("hmAllGood")}</div>`}</div>`;
- const quick=`<div class="toolbar" style="margin-top:12px"><button class="btn pri" id="hmAdd">＋ ${t("addMods")}</button></div>`;
+ const quick=`<div class="toolbar" style="margin-top:12px"><button class="btn pri" id="hmAdd">＋ ${t("addMods")}</button><button class="btn go" onclick="window._noticeArmed=true;run('auto_all')" ${running?"disabled":""} title="${t("autoAllHint")}">⚡ ${t("autoAll")}</button></div>
+  <div style="font-size:12.5px;color:var(--mut);margin-top:6px">⚡ ${t("autoAllHint")}</div>`;
  return pageWrap(`<h2>${t("home")}</h2><p class="m">${t("hmIntro")}</p>${quick}<div class="grid2" style="margin-top:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr))">${nx}${setup}${game}${prot}${attn}</div>`)}
 function addMenu(ev){menu(ev,[[t("browse")+" (Nexus)",()=>{page="browse";render()}],[t("pickArchives"),pickArchives],[t("openArchives"),()=>api("/api/open",{what:"archives"})],[t("extract"),()=>run("scan")],[t("extractSuffix"),()=>run("scan_suffix")]]
  .concat(S.nexus&&S.nexus.premium?[[t("nxDownload"),nxDl]]:[]).concat(S.nexus&&S.nexus.premium&&S.collection?[[t("nxColl"),()=>run("collection_download")]]:[]))}
@@ -8450,6 +9662,46 @@ function bindTerm(){termPaint();const to=$("#termOut");if(to)to.scrollTop=to.scr
  $("#termKonsole").onclick=async()=>{const r=await api("/api/open_terminal",{});if(r.result==="none")alert(t("termNoTerm"))};
  $("#termCopy").onclick=async()=>{try{await navigator.clipboard.writeText(LOGTXT);$("#termCopy").textContent="✔"}catch(e){prompt("",LOGTXT.slice(-20000))}};
  document.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>{i.value=TERMVAL=b.dataset.ex;i.focus()})}
+/* ---- game and mod logs ---- */
+let GL=null,GLSEL="",GLTXT=null,GLQ="",GLPROB=false,GLGRP="";
+const GL_ERR=/\[(?:error|critical|E|C)\]|\b(?:error|errors|exception|failed|failure|fatal|crash(?:ed)?|unable to|cannot|can't|could not|couldn't|missing|not found)\b/i,GL_WARN=/\[(?:warning|warn|W)\]|\bwarn(?:ing)?s?\b/i,GL_NOISE=/\b0 errors?\b|\berrors?: 0\b|no errors?\b/i;
+const GL_TAG=/\[(error|critical|err|E|C|warning|warn|W|info|debug|trace|I|D|T)\]/i;
+const glLv=l=>{const m=GL_TAG.exec(l);if(m){const g=m[1].toLowerCase();return ["error","critical","err","e","c"].includes(g)?"e":["warning","warn","w"].includes(g)?"w":""}if(GL_NOISE.test(l))return "";const e=l.search(GL_ERR),w=l.search(GL_WARN);return e>=0&&w>=0?(e<w?"e":"w"):e>=0?"e":w>=0?"w":""};
+const GLG={crash:"Crash",skse:"SKSE",papyrus:"Papyrus",data:"Data/SKSE",game:"Game",proton:"Proton"};
+const glDate=x=>fmtDate(new Date(x*1000).toISOString());
+function glPaint(){const o=$("#glOut");if(!o)return;if(GLTXT===null){o.innerHTML=`<span class="m">${t(GLSEL?"glLoading":"glSel")}</span>`;return}
+ const q=GLQ.trim().toLowerCase();let lines=GLTXT.text.split(/\r?\n/);if(GLPROB)lines=lines.filter(l=>glLv(l));if(q)lines=lines.filter(l=>l.toLowerCase().includes(q));
+ const hl=h=>{if(!q)return h;const i=h.toLowerCase().indexOf(esc(q).toLowerCase());return i<0?h:h.slice(0,i)+"<mark>"+h.slice(i,i+esc(q).length)+"</mark>"+h.slice(i+esc(q).length)};
+ o.innerHTML=(GLTXT.cut&&!q&&!GLPROB?`<span class="m">${t("glCut")}</span>\n`:"")+(lines.length?lines.map(l=>{const v=glLv(l),h=hl(esc(l));return v==="e"?`<span class="bad">${h}</span>`:v==="w"?`<span class="warn">${h}</span>`:h}).join("\n"):`<span class="m">${t("glNoMatch")}</span>`)}
+async function glLoad(path){GLSEL=path;GLTXT=null;renderMain();const r=await api("/api/gamelog?path="+encodeURIComponent(path));if(GLSEL!==path)return;GLTXT=r.error?{text:String(r.error),cut:false}:r;
+ if(page==="glogs"){glPaint();const cp=$("#glCopy");if(cp)cp.disabled=false;const o=$("#glOut");if(o)o.scrollTop=GLQ||GLPROB?0:o.scrollHeight}}
+function glogsView(){if(!GL)return pageWrap(`<h2>${t("glogs")}</h2><div class="empty">${t("glLoading")}</div>`);
+ if(GL.no_game)return pageWrap(`<h2>${t("glogs")}</h2><p class="m">${t("glNoGame")}</p>`);
+ const c=GL.last_crash,cs=c&&c.crash||{},dis=running?" disabled":"";
+ const crash=c?`<div class="box glcrash"><b>💥 ${t("glCrash")}: <span class="mono">${esc(c.name)}</span></b> <span class="m">${glDate(c.mtime)}${c.fresh?" · "+t("glCrashFresh"):""}</span>
+  ${cs.exception?`<div class="mono" style="margin-top:6px;overflow-wrap:anywhere">${esc(cs.exception)}</div>`:""}
+  ${cs.mentions&&cs.mentions.length?`<div class="m" style="margin-top:6px">${t("glMentions")}:</div><div class="chips" style="margin-top:4px">${cs.mentions.map(m=>`<span class="chip">${esc(m.name)} ×${m.count}</span>`).join("")}</div>`:""}
+  <div style="margin-top:8px"><button class="btn" data-glsel="${esc(c.path)}">${t("glOpen")}</button></div></div>`:"";
+ const pap=GL.papyrus_on===null||GL.papyrus_on===undefined?`<span class="m">${t("glPapNo")}</span>`:`<span class="${GL.papyrus_on?"okline":"m"}">${t(GL.papyrus_on?"glPapOn":"glPapOff")}</span> <button class="btn sm"${dis} title="${esc(t("glPapHint"))}" onclick="run('${GL.papyrus_on?"papyrus_off":"papyrus_on"}')">${t(GL.papyrus_on?"glPapDisable":"glPapEnable")}</button>`;
+ const groups=[...new Set(GL.files.map(f=>f.group))];
+ const files=GL.files.filter(f=>!GLGRP||f.group===GLGRP);
+ const list=GL.files.length?`<div class="chips" style="margin-bottom:6px"><button class="${GLGRP?"":"on"}" data-glg="">${t("glGroups")} (${GL.files.length})</button>${groups.map(g=>`<button class="${GLGRP===g?"on":""}" data-glg="${g}">${GLG[g]||g} (${GL.files.filter(f=>f.group===g).length})</button>`).join("")}</div>
+  <div class="gllist">${files.map(f=>`<div class="glrow${f.path===GLSEL?" on":""}" data-glsel="${esc(f.path)}" title="${esc(f.path)}"><span class="badge">${GLG[f.group]||f.group}</span><span class="mono glname">${esc(f.name)}</span>
+  ${!f.fresh&&GL.session?`<span class="badge old" title="${esc(t("glOldHint"))}">${t("glOld")}</span>`:""}${f.errors?`<span class="cnt bad" title="${t("glErr")}">✖ ${f.errors}</span>`:""}${f.warnings?`<span class="cnt wn" title="${t("glWarn")}">⚠ ${f.warnings}</span>`:""}<span class="m glmeta">${glDate(f.mtime)} · ${fmtSize(f.size)}</span></div>`).join("")}</div>`:`<p class="m">${t("glNone")}</p>`;
+ const viewer=`<div class="toolbar" style="margin:10px 0 6px;flex-wrap:wrap"><div class="search" style="flex:1 1 220px;min-width:200px;max-width:360px"><input id="glQ" placeholder="${t("glFind")}" value="${esc(GLQ)}"></div>
+  <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="glProb" ${GLPROB?"checked":""}>${t("glProb")}</label>
+  <button class="btn" id="glRef">${t("glRefresh")}</button><button class="btn" id="glFile"${GLSEL?"":" disabled"}>${t("glOpenFile")}</button><button class="btn" id="glDir"${GLSEL?"":" disabled"}>${t("glOpenDir")}</button><button class="btn" id="glCopy"${GLTXT?"":" disabled"}>${t("glCopy")}</button></div>
+  ${GLSEL?`<div class="mono m" style="font-size:12px;overflow-wrap:anywhere">${esc(GLSEL)}</div>`:""}<pre class="termout glout" id="glOut"></pre>`;
+ return pageWrap(`<h2>${t("glogs")}</h2><p class="m">${t("glIntro")}</p>${crash}<p style="margin:8px 0">${pap}</p>${list}${viewer}`)}
+async function bindGlogs(){if(!GL){const r=await api("/api/gamelogs");GL=r;if(!GLSEL&&GL.files&&GL.files.length){const f=(GL.last_crash&&GL.last_crash.fresh)?GL.last_crash:GL.files.find(x=>x.errors&&x.fresh)||GL.files[0];GLSEL=f.path;GLTXT=null}if(page==="glogs"){renderMain();if(GLSEL)glLoad(GLSEL)}return}
+ glPaint();const o=$("#glOut");if(o&&GLTXT&&!GLQ&&!GLPROB)o.scrollTop=o.scrollHeight;
+ document.querySelectorAll("[data-glsel]").forEach(e=>e.onclick=async()=>{await glLoad(e.dataset.glsel);const v=$("#glQ");if(v)v.scrollIntoView({block:"start",behavior:"smooth"})});
+ document.querySelectorAll("[data-glg]").forEach(e=>e.onclick=()=>{GLGRP=e.dataset.glg;renderMain()});
+ const qi=$("#glQ");qi.oninput=()=>{GLQ=qi.value;glPaint()};$("#glProb").onchange=e=>{GLPROB=e.target.checked;glPaint()};
+ $("#glRef").onclick=()=>{GL=null;GLTXT=null;renderMain()};
+ $("#glFile").onclick=async()=>{const r=await api("/api/open_file",{path:GLSEL});if(r.result!=="ok")alert(GLSEL)};
+ $("#glDir").onclick=async()=>{const d=GLSEL.replace(/\/[^\/]*$/,"");const r=await api("/api/open_path",{path:d});if(r.result!=="ok")alert(d)};
+ $("#glCopy").onclick=async()=>{const txt=GLTXT?GLTXT.text:"";try{await navigator.clipboard.writeText(txt);$("#glCopy").textContent="✔ "+t("glCopied")}catch(e){prompt("",txt.slice(-20000))}}}
 /* ---- diagnostics ---- */
 let DG=null;
 const dgT=v=>String(v).replace(/\bdg[A-Z]\w*\b/g,k=>t(k));
@@ -8509,15 +9761,23 @@ function fomodQuestion(q){if(!q){if(FQ){FQ=null;closeDlg()}return}if(FQ&&FQ.id==
  $("#fqNext").onclick=async()=>{const picked=[...o.querySelectorAll("input[name=fq]:checked")].map(e=>+e.value).filter(i=>i>=0);
   await api("/api/fomod_answer",{id:q.id,picked});closeDlg()}}
 /* ---- Nexus mod browser ---- */
-const BR={q:"",sort:"endorsements",offset:0,res:null,loading:false,adult:false,err:""};
-async function brSearch(off){BR.offset=off||0;BR.loading=true;BR.err="";renderMain();
- try{const r=await api(`/api/browse?q=${encodeURIComponent(BR.q)}&sort=${BR.sort}&offset=${BR.offset}&adult=${BR.adult?1:0}`);if(r.error){BR.err=r.error;BR.res=null}else BR.res=r}catch(e){BR.err=String(e)}
+const BR={q:"",sort:"endorsements",offset:0,res:null,loading:false,adult:false,err:"",kind:"mods"};
+async function brSearch(off){BR.offset=off||0;BR.loading=true;BR.err="";renderMain();const kind=BR.kind;
+ try{const r=await api(`/api/${kind==="coll"?"browse_collections":"browse"}?q=${encodeURIComponent(BR.q)}&sort=${BR.sort}&offset=${BR.offset}&adult=${BR.adult?1:0}`);if(kind!==BR.kind)return;if(r.error){BR.err=r.error;BR.res=null}else{BR.res=r;if(kind==="coll")r.source="graphql"}}catch(e){BR.err=String(e)}
  BR.loading=false;if(page==="browse"){renderMain();const pg=document.querySelector(".page");if(pg)pg.scrollTop=0}}
 function fmtNum(n){return n==null?"—":Number(n).toLocaleString(L==="uk"?"uk-UA":"en-GB")}
-function browseView(){const r=BR.res,lg=!!S.nexus,pr=!!(S.nexus&&S.nexus.premium);
- const sorts=[["endorsements",t("brSortEnd")],["downloads",t("brSortDl")],["updated",t("brSortUpd")],["new",t("brSortNew")]];
+function collCards(r,lg){return `<div class="bgrid">${r.collections.map(c=>`<div class="bcard">
+  ${c.picture?`<img class="pic" loading="lazy" referrerpolicy="no-referrer" src="${esc(c.picture)}" alt="">`:`<div class="pic"></div>`}
+  <div class="bb"><div class="bn">${esc(c.name)} ${c.attached?`<span class="badge">${t("brCollOn")}</span>`:""}${c.adult?` <span class="badge bad">18+</span>`:""}</div>
+  <div class="bm">${esc(c.author||"")}${c.category?" · "+esc(c.category):""}${c.mods!=null?" · "+fmtNum(c.mods)+" "+t("brCollMods"):""}${c.size?" · "+fmtSize(c.size):""} · 👍 ${fmtNum(c.endorsements)} · ⬇ ${fmtNum(c.downloads)}</div>
+  <div class="bs">${esc(c.summary)}</div>
+  <div class="ba">${lg?`<button class="btn pri" data-cnew="${esc(c.slug)}" data-cname="${esc(c.name)}"${running?" disabled":""}>${t("brCollNew")}</button><button class="btn" data-ccur="${esc(c.slug)}" data-cname="${esc(c.name)}"${running?" disabled":""}>${t("brCollCur")}</button>`:""}<button class="btn" data-url="${esc(c.url)}">${t("brPage")}</button></div></div></div>`).join("")||`<div class="empty">${t("brNothing")}</div>`}</div>`}
+function browseView(){const r=BR.res,lg=!!S.nexus,pr=!!(S.nexus&&S.nexus.premium),coll=BR.kind==="coll";
+ const sorts=[["endorsements",t("brSortEnd")],["downloads",t("brSortDl")],["updated",t("brSortUpd")]].concat(coll?[]:[["new",t("brSortNew")]]);
+ const tabs=`<div class="chips" style="margin-bottom:10px"><button class="${coll?"":"on"}" data-brk="mods">${t("brKindMods")}</button><button class="${coll?"on":""}" data-brk="coll">${t("brKindColl")}</button></div>`;
  let body;if(BR.loading)body=`<div class="empty">${t("brLoading")}</div>`;else if(BR.err)body=`<div class="banner">${esc(BR.err)}</div>${lg?"":`<p class="m" style="margin-top:10px">${t("brNeedLogin")}</p>`}`;
  else if(!r)body=`<div class="empty">${t("brHint")}</div>`;
+ else if(coll)body=`<p class="m">${t("brFound")}: ${r.total==null?"?":fmtNum(r.total)}</p>${lg?`<p class="m" style="font-size:12.5px">${t(pr?"brCollPr":"brCollFree")}</p>`:`<p class="m">${t("brCollLogin")}</p>`}${brPager(r)}${collCards(r,lg)}${brPager(r)}`;
  else body=`<p class="m">${t("brFound")}: ${r.total==null?"?":fmtNum(r.total)}${r.hidden_adult?` · ${t("brHidden")}: ${r.hidden_adult}`:""}</p>${brPager(r)}<div class="bgrid">${r.mods.map(m=>`<div class="bcard">
   ${m.picture?`<img class="pic" loading="lazy" referrerpolicy="no-referrer" src="${esc(m.picture)}" alt="">`:`<div class="pic"></div>`}
   <div class="bb"><div class="bn">${esc(m.name)} ${m.installed?`<span class="badge">${t("brHave")}</span>`:""}</div>
@@ -8525,8 +9785,8 @@ function browseView(){const r=BR.res,lg=!!S.nexus,pr=!!(S.nexus&&S.nexus.premium
   <div class="bs">${esc(m.summary)}</div>
   <div class="ba">${lg?`<button class="btn pri" data-files="${m.mod_id}" data-name="${esc(m.name)}">${t(pr?"brDownload":"brFiles")}</button>`:""}<button class="btn" data-url="${esc(m.url)}">${t("brPage")}</button></div></div></div>`).join("")}</div>
   ${brPager(r)}`;
- return pageWrap(`<h2>${t("browse")}</h2><p class="m">${t(lg?(pr?"brIntroPr":"brIntroFree"):"brIntroAnon")}</p>
- <div class="toolbar" style="margin-bottom:12px;flex-wrap:wrap"><div class="search" style="flex:1;min-width:180px"><input id="brQ" placeholder="${t("brSearch")}" value="${esc(BR.q)}"></div>
+ return pageWrap(`<h2>${t("browse")}</h2>${tabs}<p class="m">${coll?t("brCollIntro"):t(lg?(pr?"brIntroPr":"brIntroFree"):"brIntroAnon")}</p>
+ <div class="toolbar" style="margin-bottom:12px;flex-wrap:wrap"><div class="search" style="flex:1;min-width:180px"><input id="brQ" placeholder="${t(coll?"brCollSearch":"brSearch")}" value="${esc(BR.q)}"></div>
  <select id="brSort">${sorts.map(([k,n])=>`<option value="${k}" ${BR.sort===k?"selected":""}>${esc(n)}</option>`).join("")}</select>
  <label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="brAdult" ${BR.adult?"checked":""}>18+</label>
  <button class="btn pri" id="brGo">${t("brGo")}</button></div>${body}`)}
@@ -8541,6 +9801,12 @@ function bindBrowse(){const q=$("#brQ");if(!q)return;q.onkeydown=e=>{if(e.key===
  document.querySelectorAll("[data-pg]").forEach(x=>x.onclick=()=>{const n=+x.dataset.pg;if(n>=1)brSearch((n-1)*20)});
  document.querySelectorAll("[data-url]").forEach(b=>b.onclick=()=>api("/api/open_url",{url:b.dataset.url}));
  document.querySelectorAll("[data-files]").forEach(b=>b.onclick=()=>modFiles(+b.dataset.files,b.dataset.name));
+ document.querySelectorAll("[data-brk]").forEach(b=>b.onclick=()=>{if(BR.kind===b.dataset.brk)return;BR.kind=b.dataset.brk;BR.res=null;BR.err="";if(BR.kind==="coll"&&BR.sort==="new")BR.sort="endorsements";brSearch(0)});
+ document.querySelectorAll("[data-cnew]").forEach(b=>b.onclick=async()=>{const base=b.dataset.cname.replace(/[\\/:*?"<>|]/g,"").trim().slice(0,60)||"Collection";
+  const n=prompt(t("brCollProfName"),base);if(!n||!n.trim())return;const r=await api("/api/profile_new_coll",{name:n.trim(),source:b.dataset.cnew});
+  if(r.error){alert(r.error==="busy"?t("busy"):r.error);return}running=true;jobLine();BR.res=null;page="collection";render()});
+ document.querySelectorAll("[data-ccur]").forEach(b=>b.onclick=async()=>{if(!confirm(t("brCollCurQ").replace("%s",b.dataset.cname).replace("%p",S.profile)))return;
+  await run("collection_nexus",b.dataset.ccur);BR.res=null;page="collection";render()});
  if(!BR.res&&!BR.loading&&!BR.err)brSearch(0)}
 async function modFiles(id,name){const o=dlg("files",`<div class="dh"><b>${esc(name)}</b><div class="m">${t("brFilesOf")}</div></div><div class="db"><div class="empty">${t("brLoading")}</div></div><div class="df"><button class="btn" id="fClose">${t("fmClose")}</button></div>`);
  $("#fClose").onclick=closeDlg;const r=await api("/api/mod_files?mod="+id);const db=o.querySelector(".db");
@@ -8552,10 +9818,10 @@ async function modFiles(id,name){const o=dlg("files",`<div class="dh"><b>${esc(n
   if(x.error){alert(x.error==="busy"?t("busy"):x.error);return}if(x.result==="job"){closeDlg();running=true;jobLine();BR.res=null}else if(x.result==="no-opener")prompt(t("brOpenManual"),x.url);else b.textContent="✔ "+t("brOpened")})}
 function renderMain(){const m=$("#main");let left;
  if(page==="term"){m.innerHTML=`<div class="col" style="grid-column:1/-1">${termView()}</div>`;bindTerm();return}
- if(page==="home")left=`<div class="col">${homeView()}</div>`;else if(page==="mods")left=`<div class="col">${modsView()}</div>`;else left=`<div class="col">${{diag:diagView,browse:browseView,collection:collectionView,fomod:fomodView,plugins:pluginsView,deps:depsView,conflicts:conflictsView,deploy:deployView,backups:backupsView,settings:settingsView}[page]()}</div>`;
- m.innerHTML=left+`<div class="col rightcol">${statusCard()}${page==="mods"?detail():""}</div>`;bindStatus();if(page==="mods")bindMods();if(page==="home")bindHome();if(page==="backups")bindBackups();if(page==="browse")bindBrowse();if(page==="diag")loadDiag()}
+ if(page==="home")left=`<div class="col">${homeView()}</div>`;else if(page==="mods")left=`<div class="col">${modsView()}</div>`;else left=`<div class="col">${{diag:diagView,browse:browseView,collection:collectionView,fomod:fomodView,plugins:pluginsView,glogs:glogsView,deps:depsView,conflicts:conflictsView,deploy:deployView,backups:backupsView,settings:settingsView}[page]()}</div>`;
+ m.innerHTML=left+`<div class="col rightcol">${statusCard()}${page==="mods"?detail():""}</div>`;bindStatus();if(page==="mods")bindMods();if(page==="home")bindHome();if(page==="backups")bindBackups();if(page==="browse")bindBrowse();if(page==="diag")loadDiag();if(page==="glogs")bindGlogs()}
 function render(){document.documentElement.lang=L;document.body.dataset.drop=t(S&&S.drop_extract?"dropHereX":"dropHere");document.querySelectorAll("[data-i]").forEach(e=>e.textContent=t(e.dataset.i));$("#ver").textContent="v"+S.version;$("#langSel").value=L;$("#quitBtn").title=t("quit");nav();renderMain();jobLine()}
-function jobLine(){const j=S&&S.job;$("#dot").className="dot"+(running?" run":"");$("#jobtxt").textContent=running?t("working")+" "+(j?j.args.join(" "):""):(j&&j.rc?"rc="+j.rc:t("idle"))}
+function jobLine(){const j=S&&S.job;$("#dot").className="dot"+(running?" run":"");const jt=$("#jobtxt"),ja=j?j.args.join(" "):"";jt.title=running?ja:"";jt.textContent=running?t("working")+" "+(ja.length>90?ja.slice(0,90)+"…":ja):(j&&j.rc?"rc="+j.rc:t("idle"))}
 function menu(ev,items){ev.stopPropagation();closeMenu();const d=document.createElement("div");d.className="menu";d.id="menu";
  d.innerHTML=items.map((it,i)=>`<button data-i="${i}">${esc(it[0])}</button>`).join("");document.body.appendChild(d);
  const r=ev.target.getBoundingClientRect();d.style.top=Math.min(r.bottom+4,innerHeight-d.offsetHeight-8)+"px";d.style.left=Math.min(r.left,innerWidth-d.offsetWidth-8)+"px";
@@ -8573,14 +9839,14 @@ function nxDl(){const v=prompt(t("nxAsk"));if(v&&v.trim())run("nexus_download",v
 async function quit(){await api("/api/quit",{});document.body.innerHTML=`<div class="empty" style="padding:80px">${t("closed")}</div>`;setTimeout(()=>{try{window.close()}catch(e){}},300)}
 $("#langSel").onchange=e=>run("lang",e.target.value);$("#quitBtn").onclick=quit;
 (()=>{const go=()=>{page="term";render()};$("#logTog").textContent="⤢";$("#logTog").onclick=go;$("#log").onclick=go;document.querySelector(".log .lt").onclick=go})();
-async function refresh(){S=await api("/api/state");L=S.lang||"uk";running=!!(S.job&&S.job.running);if(sel&&!S.mods.find(m=>m.name===sel))sel=null;if(!sel&&S.mods.length)sel=S.mods[0].name;render()}
+async function refresh(){if(page==="glogs"){GL=null;GLTXT=null}S=await api("/api/state");L=S.lang||"uk";running=!!(S.job&&S.job.running);if(sel&&!S.mods.find(m=>m.name===sel))sel=null;if(!sel&&S.mods.length)sel=S.mods[0].name;render()}
 async function pollLog(){try{const r=await api("/api/log?from="+logFrom);const changed=r.lines.length||(r.partial||"")!==PART;
  if(r.lines.length){LOGTXT+=(LOGTXT?"\n":"")+r.lines.join("\n");if(LOGTXT.length>300000)LOGTXT=LOGTXT.slice(-200000)}PART=r.partial||"";
  for(const l of r.lines){if(l.startsWith("$ ")){NPROB=0;LASTPROB=""}else if(PROB_RE.test(l)){NPROB++;LASTPROB=l}}
  if(changed){const last=PART||r.lines.filter(l=>l.trim()).slice(-1)[0];const pre=$("#log");
   if(last!==undefined){pre.textContent=last.trim();pre.title=last;pre.classList.toggle("bad",PROB_RE.test(last))}termAdd(r.lines);probBadge()}
  if(!(r.job&&r.job.running)&&LASTPROB&&$("#log").title!==LASTPROB){const pre=$("#log");pre.textContent=LASTPROB.trim();pre.title=LASTPROB;pre.classList.add("bad")}
- logFrom=r.next;fomodQuestion(r.question);const was=running,wasTerm=termJob();running=!!(r.job&&r.job.running);if(S)S.job=r.job;
+ logFrom=r.next;fomodQuestion(r.question);showNotice(r.notice);const was=running,wasTerm=termJob();running=!!(r.job&&r.job.running);if(S)S.job=r.job;
  if(was&&!running)await refresh();else{jobLine();if(page==="term"&&wasTerm!==termJob())renderMain()}}catch(e){}setTimeout(pollLog,running?300:1500)}
 setInterval(()=>api("/api/beat",{}).catch(()=>{}),5000);api("/api/beat",{});
 refresh().then(pollLog);
@@ -8601,12 +9867,8 @@ def _gui_trees() -> str:
 
 GUI_PAGE = GUI_PAGE.replace("%TREES%", _gui_trees())
 
-# ===================================================================================
-# Native window (GTK 3 via PyGObject, present on SteamOS). Same backend (GuiApp) and the same
-# translations as the web page; every action still runs this script as a subprocess.
-# ===================================================================================
 def gui_i18n() -> dict:
-    """The I18N table of the web page, parsed from its JavaScript literal (one table for both GUIs)."""
+    """The I18N table of the web page, parsed from its JavaScript literal (the backend's hints use it too)."""
     a = GUI_PAGE.index("const I18N=") + len("const I18N=")
     b = GUI_PAGE.index("\nlet S=null", a)
     js = GUI_PAGE[a:b].rstrip().rstrip(";")
@@ -8629,1732 +9891,6 @@ def gui_i18n() -> dict:
             out.append(c)
             i += 1
     return json.loads("".join(out))
-
-def gtk_available() -> bool:
-    try:
-        import gi
-        gi.require_version("Gtk", "3.0")
-        from gi.repository import Gtk  # noqa: F401
-        return True
-    except Exception:
-        return False
-
-GTK_CSS = b"""
-.sme-card { border: 1px solid alpha(currentColor, 0.18); border-radius: 10px; padding: 10px; }
-.sme-title { font-size: 15pt; font-weight: bold; }
-.sme-h2 { font-size: 13pt; font-weight: bold; }
-.sme-muted { color: #8a9ab5; }
-.sme-ok { color: #1fbf73; }
-.sme-warn { color: #e0a43a; }
-.sme-bad { color: #e2554f; }
-.sme-play { background-image: none; background-color: #1fbf73; color: #04150c; font-weight: bold; }
-.sme-log { font-family: monospace; font-size: 9pt; }
-"""
-
-def gtk_run(engine, engine_path: Path, output: str = "mod_engine_output", on_ready=None) -> int:
-    import gi
-    gi.require_version("Gtk", "3.0")
-    from gi.repository import Gtk, GLib, Gdk, Pango
-    try:
-        gi.require_version("GdkPixbuf", "2.0")
-        from gi.repository import GdkPixbuf
-    except (ImportError, ValueError):
-        GdkPixbuf = None  # pictures are skipped, everything else works
-    os.chdir(engine_path.parent)
-    app = GuiApp(engine, engine_path, output)
-    app.out.mkdir(parents=True, exist_ok=True)
-    I18N = gui_i18n()
-    esc = GLib.markup_escape_text
-
-    class W:
-        S: dict = {}
-        sel: str | None = None
-        log_from = 0
-        was_running = False
-        filter_text = ""
-        filter_cat = ""
-        building = False
-        last_click = (0, 0)
-        q_shown = 0          # FOMOD question already on screen
-        in_dialog = False
-        br = {"q": "", "sort": "endorsements", "offset": 0, "adult": False, "res": None, "err": "", "loading": False}
-        pix: dict = {}       # picture url -> pixbuf (or None while loading)
-
-    def t(k: str) -> str:
-        return (I18N.get(W.S.get("lang") or engine._LANG) or I18N["uk"]).get(k, k)
-
-    settings = Gtk.Settings.get_default()
-    if settings is not None:
-        settings.set_property("gtk-application-prefer-dark-theme", True)
-    css = Gtk.CssProvider()
-    css.load_from_data(GTK_CSS)
-    Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-
-    win = Gtk.Window(title="Skyrim Mod Engine")
-    win.set_default_size(1280, 800)
-
-    # ---------------------------------------------------------------- helpers
-    def label(text="", cls=None, markup=False, wrap=True, xalign=0.0, sel=False):
-        l = Gtk.Label()
-        (l.set_markup if markup else l.set_text)(text)
-        l.set_xalign(xalign)
-        l.set_line_wrap(wrap)
-        if wrap:
-            l.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-        l.set_selectable(sel)
-        for c in (cls or "").split():
-            l.get_style_context().add_class(c)
-        return l
-
-    def button(text, cb, cls=None):
-        b = Gtk.Button(label=text)
-        b.connect("clicked", lambda *_: cb())
-        for c in (cls or "").split():
-            b.get_style_context().add_class(c)
-        return b
-
-    class WrapBox(Gtk.FlowBox):
-        """A row of buttons that wraps onto the next line instead of making the page wider than the
-        window (on the Steam Deck's 1280 px a long row pushed text off the left/right edge)."""
-        def __init__(self, spacing=8):
-            super().__init__()
-            self.set_selection_mode(Gtk.SelectionMode.NONE)
-            self.set_homogeneous(False)
-            self.set_column_spacing(spacing)
-            self.set_row_spacing(spacing // 2)
-            self.set_max_children_per_line(30)
-            self.set_min_children_per_line(1)
-            self.set_activate_on_single_click(False)
-            self.set_valign(Gtk.Align.START)
-            self.set_halign(Gtk.Align.START)  # buttons sit side by side from the left, not spread out
-
-        def pack_start(self, w, *_a):
-            self.add(w)
-            ch = w.get_parent()
-            if ch is not None:
-                ch.set_can_focus(False)
-                ch.set_halign(Gtk.Align.START)
-
-        pack_end = pack_start
-
-    def hbox(*w, spacing=8):
-        b = WrapBox(spacing)
-        for x in w:
-            b.pack_start(x)
-        return b
-
-    def vbox(spacing=8):
-        return Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=spacing)
-
-    def card(child):
-        f = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        f.get_style_context().add_class("sme-card")
-        f.pack_start(child, True, True, 0)
-        return f
-
-    def clear(box):
-        for c in box.get_children():
-            box.remove(c)
-
-    # Popovers instead of GtkComboBox/GtkMenu: those draw scroll arrows and jump around on some
-    # desktops (seen on SteamOS/KDE); a popover is a plain list attached to its button.
-    def popover_menu(relative, items):
-        pop = Gtk.Popover.new(relative)
-        box = vbox(0)
-        box.set_border_width(4)
-        for text, cb in items:
-            b = Gtk.ModelButton()
-            b.set_property("text", text)
-            b.connect("clicked", lambda _b, f=cb: GLib.idle_add(lambda: (f(), False)[1]))
-            box.pack_start(b, False, False, 0)
-        box.show_all()
-        pop.add(box)
-        return pop
-
-    def menu_button(text, items, cls=None):
-        mb = Gtk.MenuButton()
-        if text is not None:
-            mb.set_label(text)
-        mb.set_popover(popover_menu(mb, items))
-        for c in (cls or "").split():
-            mb.get_style_context().add_class(c)
-        return mb
-
-    def choice(options, active, on_change):
-        """A dropdown made of a button + popover. options: [(id, label)]."""
-        mb = Gtk.MenuButton()
-        lab = label(dict(options).get(active, options[0][1] if options else ""), wrap=False)
-        row = Gtk.Box(spacing=6)
-        row.pack_start(lab, True, True, 0)
-        row.pack_end(Gtk.Image.new_from_icon_name("pan-down-symbolic", Gtk.IconSize.BUTTON), False, False, 0)
-        mb.add(row)
-        def pick(i, l):
-            lab.set_text(l)
-            mb.choice_id = i
-            on_change(i)
-        mb.set_popover(popover_menu(mb, [(l, (lambda i=i, l=l: pick(i, l))) for i, l in options]))
-        mb.choice_id = active
-        return mb
-
-    def confirm(text) -> bool:
-        d = Gtk.MessageDialog(transient_for=win, modal=True, message_type=Gtk.MessageType.QUESTION,
-                              buttons=Gtk.ButtonsType.OK_CANCEL, text=text)
-        r = d.run()
-        d.destroy()
-        return r == Gtk.ResponseType.OK
-
-    def info(text):
-        d = Gtk.MessageDialog(transient_for=win, modal=True, message_type=Gtk.MessageType.INFO,
-                              buttons=Gtk.ButtonsType.OK, text=text)
-        d.run()
-        d.destroy()
-
-    def ask_text(text, password=False) -> str | None:
-        d = Gtk.MessageDialog(transient_for=win, modal=True, message_type=Gtk.MessageType.QUESTION,
-                              buttons=Gtk.ButtonsType.OK_CANCEL, text=text)
-        e = Gtk.Entry()
-        e.set_visibility(not password)
-        e.set_activates_default(True)
-        d.get_message_area().pack_end(e, False, False, 0)
-        d.set_default_response(Gtk.ResponseType.OK)
-        d.show_all()
-        r = d.run()
-        v = e.get_text().strip()
-        d.destroy()
-        return v if r == Gtk.ResponseType.OK and v else None
-
-    def open_url(url):
-        try:
-            Gtk.show_uri_on_window(win, url, Gdk.CURRENT_TIME)
-        except Exception:
-            if shutil.which("xdg-open"):
-                subprocess.Popen(["xdg-open", url], start_new_session=True)
-
-    def fmt_size(b):
-        return human_size(int(b or 0))
-
-    def fmt_date(s):
-        try:
-            return datetime.fromisoformat(s).strftime("%d.%m.%Y %H:%M") if s else "—"
-        except Exception:
-            return s or "—"
-
-    def run(action, value=None):
-        if action in GUI_VALUE_ACTIONS:
-            base, flag = GUI_VALUE_ACTIONS[action]
-            GUI_ACTIONS[action] = []
-            err = app.start(action, [flag, value or ""] + base)
-        else:
-            err = app.start(action)
-        if err:
-            info(t("busy") if err == "busy" else err)
-        poll()
-
-    def switch_profile(name):
-        err = app.set_profile(name)
-        if err:
-            info(t("busy") if err == "busy" else err)
-        refresh()
-
-    def launch():
-        r = app.launch()
-        if r == "no-steam":
-            info(t("launchFail"))
-        elif r == "running":
-            info(t("gameRunning"))
-
-    # ---------------------------------------------------------------- layout
-    root = vbox(0)
-    win.add(root)
-
-    # banner: an original mountain scene drawn with cairo (no game artwork)
-    banner = Gtk.DrawingArea()
-    banner.set_size_request(-1, 86)
-
-    def draw_banner(w, cr):
-        width, height = w.get_allocated_width(), w.get_allocated_height()
-        import cairo
-        g = cairo.LinearGradient(0, 0, 0, height)
-        g.add_color_stop_rgb(0, 0.16, 0.31, 0.53)
-        g.add_color_stop_rgb(1, 0.55, 0.71, 0.85)
-        cr.set_source(g)
-        cr.rectangle(0, 0, width, height)
-        cr.fill()
-        def ridge(points, rgb):
-            cr.set_source_rgb(*rgb)
-            cr.move_to(0, height)
-            for x, y in points:
-                cr.line_to(x * width, y * height)
-            cr.line_to(width, height)
-            cr.close_path()
-            cr.fill()
-        ridge([(0, .8), (.08, .45), (.14, .7), (.22, .25), (.29, .62), (.37, .2), (.45, .66), (.52, .33), (.6, .72), (.67, .22), (.74, .62),
-               (.81, .3), (.88, .66), (.95, .4), (1, .58)], (0.42, 0.53, 0.66))
-        ridge([(0, .9), (.1, .66), (.18, .84), (.28, .6), (.37, .86), (.47, .64), (.58, .88), (.65, .68), (.75, .9), (.85, .66), (.94, .86), (1, .7)],
-              (0.18, 0.28, 0.4))
-        fade = cairo.LinearGradient(0, 0, width, 0)
-        fade.add_color_stop_rgba(0, 0.04, 0.07, 0.13, 0.95)
-        fade.add_color_stop_rgba(0.45, 0.04, 0.07, 0.13, 0.45)
-        fade.add_color_stop_rgba(1, 0.04, 0.07, 0.13, 0.15)
-        cr.set_source(fade)
-        cr.rectangle(0, 0, width, height)
-        cr.fill()
-        cr.set_source_rgb(0.92, 0.95, 0.98)
-        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
-        cr.set_font_size(24)
-        cr.move_to(22, 42)
-        cr.show_text("Skyrim Mod Engine")
-        cr.select_font_face("Sans", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
-        cr.set_font_size(13)
-        cr.set_source_rgb(0.75, 0.81, 0.9)
-        cr.move_to(22, 64)
-        cr.show_text(f"Mod Loader & Manager · v{W.S.get('version', '?')} · {t('tagline')}")
-    try:
-        gi.require_foreign("cairo")  # python-cairo bridge; without it a plain title bar is used
-        import cairo  # noqa: F401
-        banner.connect("draw", draw_banner)
-        root.pack_start(banner, False, False, 0)
-    except Exception:
-        banner = Gtk.Label()
-        banner.set_xalign(0.0)
-        banner.set_margin_start(16)
-        banner.set_margin_top(8)
-        banner.set_margin_bottom(8)
-        banner.get_style_context().add_class("sme-title")
-        root.pack_start(banner, False, False, 0)
-
-    paned = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
-    root.pack_start(paned, True, True, 0)
-    body = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
-    paned.pack1(body, True, False)
-
-    stack = Gtk.Stack()
-    stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-    stack.set_hhomogeneous(False)  # the window's minimum size follows the visible page, not the widest one
-    stack.set_vhomogeneous(False)
-    side = Gtk.StackSidebar()
-    side.set_stack(stack)
-    side.set_size_request(200, -1)
-    body.pack_start(side, False, False, 0)
-    center = vbox(8)
-    center.set_border_width(10)
-    center.pack_start(stack, True, True, 0)
-    body.pack_start(center, True, True, 0)
-    right = vbox(10)
-    right.set_border_width(10)
-    # In a scrolled window: wrapped labels in a narrow column ask for a large minimum height, and that
-    # made the whole window taller than the Steam Deck screen (status bar and input line off-screen).
-    rsc = Gtk.ScrolledWindow()
-    rsc.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-    rsc.set_size_request(320, -1)
-    rsc.add(right)
-    body.pack_start(rsc, False, False, 0)
-
-    # status line at the bottom; the full log and the terminal have their own page
-    statusbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-    statusbar.set_border_width(6)
-    loglabel = label("", "sme-h2", wrap=False)
-    spinner = Gtk.Spinner()
-    jobl = label("", "sme-muted", wrap=False)
-    lastl = label("", "sme-log", wrap=True)
-    lastl.set_lines(3)  # long lines wrap (up to three), the full text is in the tooltip and on the log page
-    lastl.set_ellipsize(Pango.EllipsizeMode.END)
-    logbtn = Gtk.Button(label="⤢")
-    probbtn = Gtk.Button()
-    probbtn.get_style_context().add_class("sme-bad")
-    probbtn.set_no_show_all(True)
-    statusbar.pack_start(loglabel, False, False, 0)
-    statusbar.pack_start(lastl, True, True, 0)
-    statusbar.pack_end(logbtn, False, False, 0)
-    statusbar.pack_end(probbtn, False, False, 0)
-    statusbar.pack_end(jobl, False, False, 0)
-    statusbar.pack_end(spinner, False, False, 0)
-    root.pack_end(statusbar, False, False, 0)
-    root.pack_end(Gtk.Separator(), False, False, 0)
-    logview = Gtk.TextView()
-    logview.set_editable(False)
-    logview.set_monospace(True)
-    logview.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-    logview.get_style_context().add_class("sme-log")
-    logview.get_buffer().create_tag("bad", foreground="#e2554f")
-    logview.get_buffer().create_tag("warn", foreground="#d08a1c")
-    logsc = Gtk.ScrolledWindow()
-    logsc.add(logview)
-
-    pages: dict[str, Gtk.Box] = {}
-    PAGE_KEYS = ["mods", "browse", "fomod", "collection", "plugins", "deps", "conflicts", "deploy", "backups", "diag", "term", "settings"]
-    for k in PAGE_KEYS:
-        b = vbox(10)
-        sc = Gtk.ScrolledWindow()
-        sc.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)  # pages wrap to the window width: no sideways scrolling
-        if k in ("mods", "term"):
-            stack.add_titled(b, k, k)  # the mods page manages its own scrolling (the list)
-        else:
-            sc.add(b)
-            stack.add_titled(sc, k, k)
-        pages[k] = b
-
-    # ---------------------------------------------------------------- log and terminal page (built once)
-    term_page = pages["term"]
-    term_page.set_border_width(4)
-    term_title = label("", "sme-title", wrap=False)
-    term_hint = label("", "sme-muted")
-    konsole_btn = Gtk.Button()
-    konsole_btn.connect("clicked", lambda *_: app.open_terminal() == "none" and info(t("termNoTerm")))
-    # Compact: one header row, one hint line. The Deck screen (800 px minus the taskbar) must still show
-    # the input line at the bottom.
-    term_hint.set_line_wrap(False)
-    term_hint.set_ellipsize(Pango.EllipsizeMode.END)
-    prob_only = Gtk.CheckButton()
-    log_open_b, log_save_b = Gtk.Button(), Gtk.Button()
-    log_open_b.set_tooltip_text(str(app.logfile))
-    log_open_b.connect("clicked", lambda *_: app.log_open() != "ok" and info(str(app.logfile)))
-    log_save_b.connect("clicked", lambda *_: (lambda pth: info(t("logSaved") + "\n" + pth if pth else "save failed"))(app.log_save()))
-    head = hbox(term_title, prob_only, log_open_b, log_save_b, konsole_btn, spacing=8)
-    term_page.pack_start(head, False, False, 0)
-    term_page.pack_start(term_hint, False, False, 0)
-    tpaned = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
-    term_page.pack_start(tpaned, True, True, 0)
-    tpaned.pack1(logsc, True, True)
-    vte_term = None
-    try:  # a real terminal widget (the one GNOME Terminal uses), when its library is installed
-        if os.environ.get("SME_NO_VTE"):
-            raise ImportError("disabled")
-        gi.require_version("Vte", "2.91")
-        from gi.repository import Vte
-        vte_term = Vte.Terminal()
-        vte_term.set_scrollback_lines(5000)
-        vte_term.spawn_async(Vte.PtyFlags.DEFAULT, str(app.root), app.shell_argv(), None, GLib.SpawnFlags.DEFAULT,
-                             None, None, -1, None, None, None)
-        vsc = Gtk.ScrolledWindow()
-        vsc.add(vte_term)
-        vsc.set_size_request(-1, 160)
-        tpaned.pack2(vsc, True, True)
-    except Exception:
-        vte_term = None
-    term_in = Gtk.Entry()
-    term_part = label("", "sme-log", wrap=False, sel=True)
-    term_go, term_stop = Gtk.Button(), Gtk.Button()
-    W.hist, W.hi = [], -1
-    if vte_term is None:  # no VTE: the engine's own console, like the web page
-        tb_ = vbox(4)
-        tb_.pack_start(term_part, False, False, 0)
-        row_ = Gtk.Box(spacing=8)
-        row_.pack_start(label("sme $", "sme-ok", wrap=False), False, False, 0)
-        row_.pack_start(term_in, True, True, 0)
-        examples = menu_button("▾", [(ex, (lambda x=ex: (term_in.set_text(x), term_in.grab_focus(), term_in.set_position(-1))))
-                                     for ex in ("--help", "--profiles", "--skse", "--conflicts", "--deploy --dry-run",
-                                                "--game-check", "--backups", "--nexus-status", "--fomod-redo")])
-        examples.set_tooltip_text("--help, --deploy --dry-run …")
-        row_.pack_start(examples, False, False, 0)
-        row_.pack_start(term_go, False, False, 0)
-        row_.pack_start(term_stop, False, False, 0)
-        tb_.pack_start(row_, False, False, 0)
-        tpaned.pack2(tb_, False, False)
-
-    def term_job():
-        j = app.job
-        return bool(j and j.get("running") and j.get("term"))
-
-    def term_submit(*_):
-        v = term_in.get_text()
-        if term_job():
-            err = app.term_input(v)
-            term_in.set_text("")
-            if err:
-                info(err)
-            return
-        if not v.strip():
-            return
-        if not W.hist or W.hist[-1] != v:
-            W.hist.append(v)
-        W.hi = -1
-        err = app.term_run(v)
-        if err:
-            info(t("busy") if err == "busy" else t("termOnlyOpts") if err == "options-only" else t("termNoGui") if err == "no-gui" else err)
-            return
-        term_in.set_text("")
-        poll()
-
-    def term_key(_w, ev):
-        k = Gdk.keyval_name(ev.keyval)
-        if k == "Up" and not term_job() and W.hist:
-            W.hi = len(W.hist) - 1 if W.hi < 0 else max(0, W.hi - 1)
-            term_in.set_text(W.hist[W.hi])
-            term_in.set_position(-1)
-            return True
-        if k == "Down" and not term_job() and W.hi >= 0:
-            W.hi += 1
-            term_in.set_text("" if W.hi >= len(W.hist) else W.hist[W.hi])
-            if W.hi >= len(W.hist):
-                W.hi = -1
-            term_in.set_position(-1)
-            return True
-        if k in ("c", "C") and ev.state & Gdk.ModifierType.CONTROL_MASK and term_job() and not term_in.get_selection_bounds():
-            app.term_stop()
-            return True
-        return False
-    term_in.connect("activate", term_submit)
-    term_in.connect("key-press-event", term_key)
-    term_go.connect("clicked", term_submit)
-    term_stop.connect("clicked", lambda *_: app.term_stop())
-    logbtn.connect("clicked", lambda *_: stack.set_visible_child_name("term"))
-
-    def term_texts():
-        tj, busy = term_job(), bool(app.job and app.job.get("running")) and not term_job()
-        term_title.set_text(t("term"))
-        term_hint.set_text(t("termReal") if vte_term is not None else t("termHint"))
-        term_hint.set_tooltip_text(term_hint.get_text())
-        konsole_btn.set_label(t("termKonsole"))
-        prob_only.set_label(t("logProblems"))
-        log_open_b.set_label(t("logOpen"))
-        log_save_b.set_label(t("logSave"))
-        konsole_btn.set_tooltip_text(t("termKonsoleHint"))
-        term_go.set_label(t("termSend" if tj else "termRun"))
-        term_stop.set_label(t("termStop") + " (Ctrl+C)")
-        term_stop.set_visible(tj)
-        term_stop.set_no_show_all(True)
-        term_in.set_placeholder_text(t("termAnswer" if tj else "busy" if busy else "termPh"))
-        term_in.set_sensitive(not busy)
-        term_go.set_sensitive(not busy)
-
-    # ---------------------------------------------------------------- mods page (built once)
-    mods_page = pages["mods"]
-    mods_banners = vbox(6)
-    mods_page.pack_start(mods_banners, False, False, 0)
-    tb = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-    add_btn = Gtk.MenuButton()
-    extract_btn = Gtk.Button()
-    fomod_btn = Gtk.Button()
-    search = Gtk.SearchEntry()
-    catholder = Gtk.Box()
-    for w_ in (add_btn, extract_btn, fomod_btn):
-        tb.pack_start(w_, False, False, 0)
-    mods_page.pack_start(tb, False, False, 0)
-    tb2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-    tb2.pack_start(search, True, True, 0)
-    tb2.pack_start(catholder, False, False, 0)
-    mods_page.pack_start(tb2, False, False, 0)
-    extract_btn.connect("clicked", lambda *_: run("scan"))
-    fomod_btn.connect("clicked", lambda *_: run("fomod_auto"))
-    add_btn.get_style_context().add_class("suggested-action")
-
-    store = Gtk.ListStore(int, str, str, str, str, bool, str)  # index, name, markup, category, version, enabled, status
-    filt = store.filter_new()
-
-    def visible(model, it, _):
-        name, cat, en = model[it][1], model[it][3], model[it][5]
-        if W.filter_text and W.filter_text.lower() not in name.lower():
-            return False
-        if W.filter_cat == "__on":
-            return en
-        if W.filter_cat == "__off":
-            return not en
-        return not W.filter_cat or W.filter_cat == cat
-    filt.set_visible_func(visible)
-    tree = Gtk.TreeView(model=store)
-    tree.set_headers_visible(True)
-    tree.set_enable_search(False)
-    sc_tree = Gtk.ScrolledWindow()
-    sc_tree.add(tree)
-    mods_page.pack_start(sc_tree, True, True, 0)
-    cols = {}
-    for i, (key, ci, expand) in enumerate((("#", 0, False), ("colName", 2, True), ("colCat", 3, False), ("colVer", 4, False))):
-        r = Gtk.CellRendererText()
-        if key == "colName":
-            r.set_property("ellipsize", Pango.EllipsizeMode.END)
-            c = Gtk.TreeViewColumn("", r, markup=ci)
-        else:
-            c = Gtk.TreeViewColumn("", r, text=ci)
-        c.set_expand(expand)
-        c.set_resizable(True)
-        tree.append_column(c)
-        cols[key] = c
-    rt = Gtk.CellRendererToggle()
-    ct = Gtk.TreeViewColumn("", rt, active=5)
-    rs = Gtk.CellRendererText()
-    ct.pack_start(rs, True)
-    ct.add_attribute(rs, "text", 6)
-    tree.append_column(ct)
-    cols["colStatus"] = ct
-
-    def current_model_rows():
-        m = tree.get_model()
-        return [m[i][1] for i in range(len(m))]
-
-    def on_toggle(_r, path):
-        m = tree.get_model()
-        name, en = m[path][1], m[path][5]
-        if app.job and app.job.get("running"):
-            return info(t("busy"))
-        app.toggle(name, not en)
-        refresh()
-    rt.connect("toggled", on_toggle)
-
-    def on_drag_end(*_):
-        if W.building or tree.get_model() is not store:
-            return
-        new = current_model_rows()
-        if new != [m["name"] for m in W.S.get("mods", [])]:
-            app.edit_modlist(lambda order, disabled: (new, disabled))
-            refresh()
-    tree.connect("drag-end", on_drag_end)
-
-    def selected_name():
-        m, it = tree.get_selection().get_selected()
-        return m[it][1] if it else None
-
-    def on_sel(*_):
-        if not W.building:
-            W.sel = selected_name()
-            render_right()
-    tree.get_selection().connect("changed", on_sel)
-
-    def move(name, to):
-        app.move(name, max(0, to))
-        refresh()
-
-    def mod_menu(name):
-        m = next((x for x in W.S["mods"] if x["name"] == name), None)
-        if not m:
-            return
-        pop = popover_menu(tree, ((t("up"), lambda: move(name, m["index"] - 1)), (t("down"), lambda: move(name, m["index"] + 1)),
-                                  (t("top"), lambda: move(name, 0)), (t("bottom"), lambda: move(name, len(W.S["mods"]))),
-                                  (t("openFolder"), lambda: app.open_path("mod:" + name))))
-        x, y = W.last_click
-        rect = Gdk.Rectangle()
-        rect.x, rect.y, rect.width, rect.height = int(x), int(y), 1, 1
-        pop.set_pointing_to(rect)
-        pop.popup()
-
-    def on_press(_w, ev):
-        if ev.button == 3:
-            W.last_click = tree.convert_bin_window_to_widget_coords(int(ev.x), int(ev.y))
-            res = tree.get_path_at_pos(int(ev.x), int(ev.y))
-            if res:
-                tree.get_selection().select_path(res[0])
-                mod_menu(tree.get_model()[res[0]][1])
-            return True
-        return False
-    tree.connect("button-press-event", on_press)
-
-    def on_filter(*_):
-        W.filter_text = search.get_text().strip()
-        use_filter = bool(W.filter_text or W.filter_cat)
-        tree.set_model(filt if use_filter else store)
-        tree.set_reorderable(not use_filter)  # drag-and-drop order only on the full list
-        filt.refilter()
-    search.connect("search-changed", on_filter)
-    def set_cat(i):
-        W.filter_cat = i or ""
-        on_filter()
-
-    def fill_mods():
-        S = W.S
-        W.building = True
-        store.clear()
-        for m in S["mods"]:
-            sub = f'{m["files"]} {t("files")}' + (f' · {len(m["plugins"])} {t("pl")}' if m["plugins"] else "") + f' · {m.get("size") or ""}'
-            store.append([m["index"] + 1, m["name"], f'<b>{esc(m["name"])}</b>\n<small><span foreground="#8a9ab5">{esc(sub)}</span></small>',
-                          t("cat_" + m["category"]), m.get("version") or "—", m["enabled"], t("active" if m["enabled"] else "off")])
-        opts = [("", t("allCats")), ("__on", t("onlyOn")), ("__off", t("onlyOff"))] + \
-            [(c, t("cat_" + c)) for c in sorted({m["category"] for m in S["mods"]})]
-        if W.filter_cat not in dict(opts):
-            W.filter_cat = ""
-        clear(catholder)
-        catholder.pack_start(choice(opts, W.filter_cat, set_cat), False, False, 0)
-        catholder.show_all()
-        W.building = False
-        on_filter()
-        if W.sel:
-            m = tree.get_model()
-            for i in range(len(m)):
-                if m[i][1] == W.sel:
-                    tree.get_selection().select_path(Gtk.TreePath(i))
-                    tree.scroll_to_cell(Gtk.TreePath(i), None, False, 0, 0)
-                    break
-
-    # ---------------------------------------------------------------- right column
-    def protection_lines():
-        S = W.S
-        pr = S.get("protection") or {}
-        yes, no = '<span foreground="#1fbf73">✔</span>', '<span foreground="#e0a43a">✖</span>'
-        bk = len(S.get("game_backups") or [])
-        return "\n".join([f'{yes if S.get("baseline") else no} {esc(t("prList"))}',
-                          f'{yes if pr.get("incremental") else no} {esc(t("prInc"))}' + (f' ({pr.get("store_files")}, {fmt_size(pr.get("store_size"))})' if pr.get("incremental") and pr.get("store_files") else ("" if pr.get("incremental") else ": " + esc(t("prOff")))),
-                          f'{yes if bk else no} {bk} {esc(t("prBackups"))}'])
-
-    def render_right():
-        clear(right)
-        S = W.S
-        d = S.get("deployed")
-        on = [m for m in S["mods"] if m["enabled"]]
-        running = bool(app.job and app.job.get("running"))
-        need_deploy = (not d) or d["profile"] != S["profile"] or S.get("pending") or not d.get("complete")
-        if running:
-            title, cls = t("working"), "sme-warn"
-        elif not d:
-            title, cls = t("notdeployed"), "sme-warn"
-        elif d["profile"] != S["profile"]:
-            title, cls = t("other") + ": " + d["profile"], "sme-warn"
-        elif not d.get("complete"):
-            title, cls = t("incomplete"), "sme-bad"
-        elif S.get("pending"):
-            title, cls = t("pending"), "sme-warn"
-        else:
-            title, cls = t("ready"), "sme-ok"
-        box = vbox(6)
-        box.pack_start(label("● " + title, "sme-h2 " + cls), False, False, 0)
-        grid = Gtk.Grid(column_spacing=10, row_spacing=4)
-        prof = choice([(p, p) for p in S["profiles"]], S["profile"], lambda i: None if i == W.S["profile"] else switch_profile(i))
-        prot = Gtk.Button()
-        protl = label(protection_lines(), markup=True, wrap=True)
-        prot.add(protl)
-        prot.set_relief(Gtk.ReliefStyle.NONE)
-        prot.connect("clicked", lambda *_: stack.set_visible_child_name("backups"))
-        rows = [(t("profile"), prof), (t("enabledMods"), label(f"{len(on)} / {len(S['mods'])}")),
-                (t("totalSize"), label(fmt_size(sum(m.get("size_bytes") or 0 for m in on)))),
-                (t("lastDeploy"), label(fmt_date(d["at"]) + (f" ({d['profile']})" if d and d["profile"] != S["profile"] else "") if d else "—")),
-                (t("protect"), prot)]
-        for i, (k, w_) in enumerate(rows):
-            kl = label(k + ":", "sme-muted", wrap=True)
-            kl.set_max_width_chars(14)
-            grid.attach(kl, 0, i, 1, 1)
-            grid.attach(w_, 1, i, 1, 1)
-        box.pack_start(grid, False, False, 0)
-        play = Gtk.Button(label="▶ " + t("deployPlay" if need_deploy else "play"))
-        play.get_style_context().add_class("sme-play")
-        play.set_sensitive(not running)
-        play.connect("clicked", lambda *_: run("deploy_launch") if need_deploy else launch())
-        more = menu_button(None, ((t("deployPlay"), lambda: run("deploy_launch")), (t("playOnly"), launch), (t("dry"), lambda: run("dry"))))
-        pb = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
-        pb.get_style_context().add_class("linked")
-        pb.pack_start(play, True, True, 0)
-        pb.pack_start(more, False, False, 0)
-        box.pack_start(pb, False, False, 4)
-        right.pack_start(card(box), False, False, 0)
-        if stack.get_visible_child_name() == "mods":
-            right.pack_start(card(detail_box()), True, True, 0)
-        right.show_all()
-
-    def detail_box():
-        S = W.S
-        m = next((x for x in S["mods"] if x["name"] == W.sel), None)
-        outer = vbox(6)
-        if not m:
-            outer.pack_start(label(t("noSel"), "sme-muted"), False, False, 0)
-            return outer
-        b = vbox(6)
-        b.pack_start(label(f'<b>{esc(m["name"])}</b>' + (f'\n<span foreground="#8a9ab5">v{esc(m["version"])}</span>' if m.get("version") else ""), markup=True), False, False, 0)
-        kv = [(t("category"), t("cat_" + m["category"])), (t("size"), m.get("size") or ""), (t("filesCount"), str(m["files"])), (t("order"), str(m["index"] + 1))]
-        if m.get("archive"):
-            kv.append((t("archive"), m["archive"]))
-        b.pack_start(label("\n".join(f'<span foreground="#8a9ab5">{esc(k)}:</span> {esc(v)}' for k, v in kv), markup=True), False, False, 0)
-        links = hbox(button(t("openFolder"), lambda: app.open_path("mod:" + m["name"])))
-        if m.get("nexus_id"):
-            links.pack_start(button(t("nexus"), lambda: open_url(f"https://www.nexusmods.com/skyrimspecialedition/mods/{m['nexus_id']}")), False, False, 0)
-        b.pack_start(links, False, False, 0)
-        def sec(title, items):
-            if items:
-                b.pack_start(label(f"<b>{esc(title)}</b>\n" + "\n".join("• " + esc(str(x)) for x in items), markup=True), False, False, 0)
-        sec(t("pluginsL"), m["plugins"])
-        sec(t("sksePl"), m["skse_plugins"])
-        sec(t("bsa"), m["bsa"])
-        if m.get("fomod_steps"):
-            sec(t("fomodChoice"), [f'{g["group"].rstrip(":")}: {", ".join(g.get("selected") or []) or "—"}' for s_ in m["fomod_steps"] for g in s_.get("groups", [])])
-        sec(t("dependsOn"), m["deps"])
-        sec(t("neededBy"), m["rdeps"])
-        probs = [p for p in S.get("problems", []) if f"«{m['name']}»" in p]
-        b.pack_start(label("\n".join("⚠ " + esc(p) for p in probs) if probs else "✔ " + esc(t("allDepsOk")), "sme-bad" if probs else "sme-ok", markup=True), False, False, 0)
-        sec(t("wins"), [f"{n} ({c})" for n, c in m["wins"]])
-        sec(t("loses"), [f"{n} ({c})" for n, c in m["loses"]])
-        sc = Gtk.ScrolledWindow()
-        sc.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        sc.add(b)
-        outer.pack_start(sc, True, True, 0)
-        return outer
-
-    # ---------------------------------------------------------------- other pages
-    def page_header(p, title, hint=None):
-        p.pack_start(label(title, "sme-title"), False, False, 0)
-        if hint:
-            p.pack_start(label(hint, "sme-muted"), False, False, 0)
-
-    def render_mod_banners():
-        clear(mods_banners)
-        S = W.S
-        if not (S.get("protection") or {}).get("asked"):
-            mods_banners.pack_start(card(hbox(label("🛡 " + t("psTitle")), button(t("gbBannerBtn"), lambda: stack.set_visible_child_name("backups"), "suggested-action"))), False, False, 0)
-        d = S.get("deployed")
-        if S.get("pending") and d and d["profile"] == S["profile"]:
-            mods_banners.pack_start(card(hbox(label("⚠ " + t("pendingBanner"), "sme-warn"), button(t("deployNow"), lambda: run("deploy"), "suggested-action"))), False, False, 0)
-        if S.get("collisions"):
-            mods_banners.pack_start(card(hbox(label("⚠ " + t("collisionBan") + ": " + ", ".join(S["collisions"][:4]) + (" …" if len(S["collisions"]) > 4 else ""), "sme-warn"),
-                                              button(t("extractSuffix"), lambda: run("scan_suffix"), "suggested-action"))), False, False, 0)
-        if not S["mods"]:
-            mods_banners.pack_start(label(t("noMods"), "sme-muted"), False, False, 0)
-        dx = S.get("drop_extract")
-        dc = Gtk.CheckButton(label=t("dropExtract"))
-        dc.set_active(bool(dx))
-        dc.connect("toggled", lambda w: (engine.update_settings(app.out, drop_mode="extract" if w.get_active() else "copy"),
-                                         GLib.idle_add(lambda: (refresh(), False)[1])))
-        drow = vbox(2)
-        drow.pack_start(label(t("dropHintX" if dx else "dropHint"), "sme-muted"), False, False, 0)
-        drow.pack_start(dc, False, False, 0)
-        mods_banners.pack_start(drow, False, False, 0)
-        mods_banners.show_all()
-
-    def render_fomod(p):
-        S = W.S
-        page_header(p, t("fomodPage"), t("fomodHint"))
-        p.pack_start(hbox(button(t("installFomod"), lambda: run("fomod_auto"), "suggested-action"), button(t("reinstallAuto"), lambda: run("fomod_redo_auto")),
-                          button(t("fmInstallManual"), lambda: fomod_start(None, False))), False, False, 0)
-        for f in S["fomods"]:
-            lines = [f'<b>{esc(f["name"])}</b>', f'<span foreground="#8a9ab5">{esc(t("installedTo") + ": " + f["installed_to"]) if f["installed_to"] else esc(t("notInstalled"))}'
-                     + (f' · {esc(t("modeL"))}: {esc(f["mode"])}' if f.get("mode") else "") + "</span>"]
-            for s_ in f.get("steps") or []:
-                for g in s_.get("groups", []):
-                    lines.append(f'• {esc(g["group"].rstrip(":"))}: {esc(", ".join(g.get("selected") or []) or "—")}')
-            fb = vbox(6)
-            fb.pack_start(label("\n".join(lines), markup=True), False, False, 0)
-            cb_ = button(t("fmChoose"), lambda n=f["name"]: fomod_start(n, True))
-            cb_.set_sensitive(not (app.job and app.job.get("running")))
-            fb.pack_start(hbox(cb_), False, False, 0)
-            p.pack_start(card(fb), False, False, 0)
-        if S.get("attention"):
-            p.pack_start(label(t("attention"), "sme-h2"), False, False, 0)
-            for a in S["attention"]:
-                p.pack_start(label(f'{a["name"]} — {a["layout"]}' + (": " + ", ".join(a["options"][:6]) if a["options"] else ""), "sme-warn"), False, False, 0)
-
-    def render_collection(p):
-        S = W.S
-        c = S.get("collection")
-        pr = bool(S.get("nexus") and S["nexus"]["premium"])
-        page_header(p, (c or {}).get("name") or t("collection"), (t("collBy") + " " + (c.get("author") or "?")) if c else t("collNone"))
-        frow = hbox(button(t("collFile"), lambda: (lambda f: f and attach_collection(f))(choose_files(t("collFile"), ["*.json"], False))))
-        if c:
-            frow.pack_start(button(t("collDetach"), lambda: confirm(t("collNoneQ")) and run("collection_none"), "destructive-action"), False, False, 0)
-        p.pack_start(frow, False, False, 0)
-        if S.get("nexus"):
-            e = Gtk.Entry()
-            e.set_placeholder_text(t("collLink"))
-            row = Gtk.Box(spacing=8)
-            row.pack_start(e, True, True, 0)
-            row.pack_start(button(t("collFetch"), lambda: e.get_text().strip() and run("collection_nexus", e.get_text().strip()), "suggested-action"), False, False, 0)
-            p.pack_start(row, False, False, 0)
-        else:
-            p.pack_start(label(t("collNeedLogin"), "sme-muted"), False, False, 0)
-        if not c:
-            return
-        req = [m for m in c["mods"] if not m["optional"]]
-        opt = [m for m in c["mods"] if m["optional"]]
-        miss = [m for m in c["mods"] if not m["have"]]
-        p.pack_start(label(f'{t("collFound")}: {t("collReq")} {sum(m["have"] for m in req)}/{len(req)}, {t("collOpt")} {sum(m["have"] for m in opt)}/{len(opt)}'), False, False, 0)
-        row = hbox(button(t("collScan"), lambda: run("scan")))
-        if pr and miss:
-            row.pack_start(button(t("nxColl"), lambda: run("collection_download"), "suggested-action"), False, False, 0)
-            row.pack_start(button(t("nxCollAll"), lambda: run("collection_download_all")), False, False, 0)
-        p.pack_start(row, False, False, 0)
-        if miss and not pr:
-            p.pack_start(label(t("collFreeHint"), "sme-muted"), False, False, 0)
-        if miss:
-            p.pack_start(label(f'{t("collMissing")}: {len(miss)}', "sme-h2"), False, False, 0)
-            lb = Gtk.ListBox()
-            lb.set_selection_mode(Gtk.SelectionMode.NONE)
-            for m in miss[:400]:
-                r = Gtk.Box(spacing=8)
-                r.set_border_width(4)
-                r.pack_start(label(f'{m["name"]} {m.get("version") or ""}' + (f'  ({t("optional")})' if m["optional"] else "")), True, True, 0)
-                if m.get("mod_id") and m.get("file_id"):
-                    url = f'https://www.nexusmods.com/skyrimspecialedition/mods/{int(m["mod_id"])}?tab=files&file_id={int(m["file_id"])}&nmm=1'
-                    r.pack_end(button(t("collDl"), lambda u=url: open_url(u)), False, False, 0)
-                lb.add(r)
-            p.pack_start(lb, False, False, 0)
-
-    def render_plugins(p):
-        d = W.S.get("deployed")
-        page_header(p, t("pluginsPage"), f'{d["profile"]} · {fmt_date(d["at"])} · {len(d["plugins"])}' if d else t("noDeploy"))
-        if d:
-            p.pack_start(hbox(button(t("lootUpdate"), lambda: run("loot_update"))), False, False, 0)
-            p.pack_start(label("\n".join(f"{i}. {x}" for i, x in enumerate(d["plugins"], 1)), "sme-log", sel=True), False, False, 0)
-
-    def render_deps(p):
-        S = W.S
-        page_header(p, t("depsPage"))
-        p.pack_start(label(t("problems"), "sme-h2"), False, False, 0)
-        p.pack_start(label("\n".join("⚠ " + x for x in S["problems"]) if S["problems"] else "✔ " + t("noProblems"), "sme-bad" if S["problems"] else "sme-ok"), False, False, 0)
-        for m in S["mods"]:
-            if m["deps"]:
-                p.pack_start(card(label(f'<b>{esc(m["name"])}</b>\n<span foreground="#8a9ab5">{esc(t("dependsOn"))}:</span> ' + esc(", ".join(m["deps"])), markup=True)), False, False, 0)
-
-    def render_conflicts(p):
-        c = W.S["conflicts"]
-        page_header(p, t("conflictsPage"), None if c["computed"] else t("notComputed"))
-        p.pack_start(hbox(button(t("recompute"), lambda: run("conflicts"), "suggested-action")), False, False, 0)
-        if not c["computed"]:
-            return
-        p.pack_start(label(f'{c["pairs_total"]} · {t("identical")}: {c["identical"]}', "sme-muted"), False, False, 0)
-        if c["duplicate_plugins"]:
-            p.pack_start(label(t("dupPlugins"), "sme-h2 sme-bad"), False, False, 0)
-            p.pack_start(label("\n".join(f"{pl}: {', '.join(ms)}" for pl, ms in c["duplicate_plugins"])), False, False, 0)
-        st = Gtk.ListStore(str, str, int, str)
-        for x in c["pairs"]:
-            st.append([x["winner"], x["loser"], x["count"], ", ".join(f"{k}: {v}" for k, v in (x.get("by_severity") or {}).items())])
-        tv = Gtk.TreeView(model=st)
-        for i, k in enumerate(("winner", "loser", "count", "")):
-            col = Gtk.TreeViewColumn(t(k) if k else "", Gtk.CellRendererText(), text=i)
-            col.set_resizable(True)
-            col.set_expand(i < 2)
-            tv.append_column(col)
-        p.pack_start(tv, False, False, 0)
-
-    def render_deploy(p):
-        S = W.S
-        d, k = S.get("deployed"), S.get("skse")
-        page_header(p, t("deployPage"))
-        # two short rows: one long row widened the page past narrow windows (Steam Deck: 1280 px)
-        p.pack_start(hbox(button(f'{t("deployBtn")} «{S["profile"]}»', lambda: run("deploy"), "suggested-action"), button(t("dry"), lambda: run("dry")),
-                          button(t("undeployBtn"), lambda: confirm(t("confirmUndeploy")) and run("undeploy"), "destructive-action")), False, False, 0)
-        row = hbox(button(t("skseBtn"), lambda: run("skse")))
-        if S.get("nexus"):
-            row.pack_start(button(t("skseInstall"), lambda: run("skse_install")), False, False, 0)
-        p.pack_start(row, False, False, 0)
-        lines = [f'{t("deployedProfile")}: {d["profile"] if d else "—"}', f'{t("lastDeploy")}: {fmt_date(d["at"]) if d else "—"}', f'{t("filesDeployed")}: {d["files"] if d else "—"}']
-        p.pack_start(card(label("\n".join(lines) + (("\n" + t("incomplete")) if d and not d.get("complete") else ""))), False, False, 0)
-        g = S.get("game") or {}
-        lb_ = vbox(6)
-        lb_.pack_start(label(t("launcherTitle"), "sme-h2"), False, False, 0)
-        lb_.pack_start(label(t("launcherOn" if g.get("launcher") else "launcherOff"), "sme-ok" if g.get("launcher") else None), False, False, 0)
-        lb_.pack_start(label(t("launcherHelp"), "sme-muted"), False, False, 0)
-        lb_.pack_start(hbox(button(t("launcherRestore"), lambda: confirm(t("launcherRestoreQ")) and run("skse_launcher_restore")) if g.get("launcher")
-                            else button(t("launcherSet"), lambda: run("skse_launcher"), "suggested-action")), False, False, 0)
-        p.pack_start(card(lb_), False, False, 0)
-        if k:
-            cnt: dict[str, int] = {}
-            for x in k.get("plugins") or []:
-                cnt[x["status"]] = cnt.get(x["status"], 0) + 1
-            sk = k.get("skse") or {}
-            txt = [f'<b>{esc(t("skseTitle"))}</b>', f'{esc(t("gameVer"))}: {esc(k.get("game_version") or "?")}',
-                   f'SKSE: <span foreground="{"#1fbf73" if sk.get("matches_game") else "#e0a43a"}">{esc(", ".join(sk.get("runtime_dlls") or []) or "—")}</span>',
-                   f'{esc(t("sksePlugins"))}: {esc(", ".join(f"{a}: {b}" for a, b in cnt.items()) or "—")}']
-            txt += ['<span foreground="#e0a43a">⚠ ' + esc(w) + "</span>" for w in k.get("warnings") or []]
-            p.pack_start(card(label("\n".join(txt), markup=True)), False, False, 0)
-
-    def render_backups(p):
-        S = W.S
-        pr = S.get("protection") or {}
-        if not pr.get("asked"):
-            box = vbox(6)
-            box.pack_start(label("🛡 " + t("psTitle"), "sme-h2"), False, False, 0)
-            box.pack_start(label(t("psHint"), "sme-muted"), False, False, 0)
-            if S.get("baseline"):
-                box.pack_start(label("✔ " + t("psListDone"), "sme-ok"), False, False, 0)
-            inc = Gtk.CheckButton(label=t("psInc"))
-            box.pack_start(inc, False, False, 0)
-            r0 = Gtk.RadioButton.new_with_label(None, t("psNone"))
-            r1 = Gtk.RadioButton.new_with_label_from_widget(r0, t("psFull"))
-            r2 = Gtk.RadioButton.new_with_label_from_widget(r0, t("psLink"))
-            if S.get("deployed"):
-                box.pack_start(label(t("psDeployed"), "sme-muted"), False, False, 0)
-            else:
-                for r in (r0, r1, r2):
-                    box.pack_start(r, False, False, 0)
-            def apply():
-                engine.update_settings(app.out, protection_asked=True, incremental_backup=inc.get_active())
-                mode = "full" if r1.get_active() else "link" if r2.get_active() else ""
-                if mode and not S.get("deployed"):
-                    run("backup_" + mode, "")
-                else:
-                    refresh()
-            box.pack_start(hbox(button(t("psApply"), apply, "suggested-action")), False, False, 0)
-            p.pack_start(card(box), False, False, 0)
-        page_header(p, t("gameBackups"), t("gbHint"))
-        name = Gtk.Entry()
-        name.set_placeholder_text(t("gbName"))
-        row = WrapBox(8)
-        row.pack_start(name, False, False, 0)
-        for txt, act, cls in ((t("gbFull"), "backup_full", "suggested-action"), (t("gbLink"), "backup_link", None), (t("gbSaves"), "backup_full_saves", None)):
-            row.pack_start(button(txt, lambda a=act: run(a, name.get_text().strip()), cls), False, False, 0)
-        p.pack_start(row, False, False, 0)
-        p.pack_start(label(t("gbLinkNote"), "sme-muted"), False, False, 0)
-        for x in S.get("game_backups") or []:
-            r = vbox(6)
-            r.pack_start(label(f'<b>{esc(x["name"])}</b>\n<span foreground="#8a9ab5">{esc(str(x["game_version"]))} · {x["files"]} {esc(t("files"))} · {fmt_size(x["size"])} · {esc(x["mode"])}{" · saves" if x.get("saves") else ""} · {fmt_date(x["created"])}</span>', markup=True), True, True, 0)
-            r.pack_start(hbox(button(t("gbRestore"), lambda n=x["name"]: confirm(t("gbConfirm").replace("%s", n)) and run("restore_game", n)),
-                              button(t("gbVerify"), lambda n=x["name"]: run("backup_verify", n)),
-                              button(t("del"), lambda n=x["name"]: confirm(t("gbDelConfirm").replace("%s", n)) and run("backup_delete", n), "destructive-action")), False, False, 0)
-            p.pack_start(card(r), False, False, 0)
-        if not S.get("game_backups"):
-            p.pack_start(label(t("gbNone"), "sme-muted"), False, False, 0)
-        page_header(p, t("incTitle"), t("incHint"))
-        p.pack_start(hbox(label(f'{t("incState")}: {"✔" if pr.get("incremental") else "✖ " + t("prOff")} · {t("incStore")}: {pr.get("store_files", 0)} · {fmt_size(pr.get("store_size"))}'),
-                          button(t("incOff"), lambda: run("incremental_off")) if pr.get("incremental") else button(t("incOn"), lambda: run("incremental_on"), "suggested-action")), False, False, 0)
-        page_header(p, t("gcTitle"), t("gcHint"))
-        bl = S.get("baseline")
-        p.pack_start(label(f'{t("gcBase")}: {bl["version"]} · {bl["files"]} {t("files")} · {fmt_date(bl["created"])}' if bl else t("gcNoBase"), "sme-muted"), False, False, 0)
-        p.pack_start(hbox(button(t("gcCheck"), lambda: run("game_check"), "suggested-action"),
-                          button(t("gcRepair"), lambda: confirm(t("gcRepairConfirm")) and run("game_repair")),
-                          button(t("gcBaseline"), lambda: run("game_baseline"))), False, False, 0)
-        page_header(p, t("backupsPage"))
-        b, o = S["backups"], S["overwrite"]
-        p.pack_start(label(f'{t("backupFiles")}: {b["files"]} · {t("changedSets")}: {len(b["changed_sets"])}'), False, False, 0)
-        p.pack_start(hbox(label(f'{t("overwrite")}: {o["total"]}'), button(t("openOw"), lambda: app.open_path("overwrite"))), False, False, 0)
-        if o["files"]:
-            p.pack_start(label("\n".join(o["files"][:200]), "sme-log"), False, False, 0)
-
-    def render_settings(p):
-        S = W.S
-        page_header(p, t("settingsPage"))
-        # profiles
-        box = vbox(6)
-        box.pack_start(label(t("profiles"), "sme-h2"), False, False, 0)
-        d = S.get("deployed")
-        for pf in S["profiles"]:
-            r = Gtk.Box(spacing=8)
-            r.pack_start(label(pf + ("  ✔" if pf == S["profile"] else ""), wrap=False), False, False, 0)
-            if pf != S["profile"]:
-                r.pack_start(button(t("switchTo"), lambda n=pf: switch_profile(n)), False, False, 0)
-                if not (d and d["profile"] == pf):
-                    r.pack_start(button(t("del"), lambda n=pf: confirm(t("confirmDel").replace("%s", n)) and run("profile_delete", n), "destructive-action"), False, False, 0)
-            box.pack_start(r, False, False, 0)
-        npf = Gtk.Entry()
-        npf.set_placeholder_text(t("profileName"))
-        box.pack_start(label(t("newProfile") + ":"), False, False, 0)
-        box.pack_start(hbox(npf, button(t("create"), lambda: npf.get_text().strip() and run("profile_new", npf.get_text().strip()), "suggested-action")), False, False, 0)
-        def from_coll(kind):
-            nm = npf.get_text().strip()
-            if not nm:
-                return info(t("npNeed"))
-            if kind == "file":
-                dlg = Gtk.FileChooserDialog(title=t("npFile"), transient_for=win, action=Gtk.FileChooserAction.OPEN)
-                dlg.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
-                ff = Gtk.FileFilter()
-                ff.set_name("collection.json")
-                ff.add_pattern("*.json")
-                dlg.add_filter(ff)
-                src = dlg.get_filename() if dlg.run() == Gtk.ResponseType.OK else None
-                dlg.destroy()
-            else:
-                src = ask_text(t("npCollSrc"))
-            if src:
-                err = app.new_profile_from_collection(nm, src)
-                if err:
-                    info(t("busy") if err == "busy" else err)
-                poll()
-        box.pack_start(hbox(button(t("npFile"), lambda: from_coll("file")), button(t("npLink"), lambda: from_coll("link"))), False, False, 0)
-        box.pack_start(label(t("npHint"), "sme-muted"), False, False, 0)
-        p.pack_start(card(box), False, False, 0)
-        # folders
-        box = vbox(6)
-        box.pack_start(label(t("paths"), "sme-h2"), False, False, 0)
-        for k in ("archives", "mods"):
-            e = Gtk.Entry()
-            e.set_text(S["paths"][k])
-            box.pack_start(label(t("pArchives" if k == "archives" else "pMods"), "sme-muted"), False, False, 0)
-            box.pack_start(e, False, False, 0)
-            box.pack_start(hbox(button(t("pSave"), lambda k=k, e=e: e.get_text().strip() and run("set_" + k, e.get_text().strip()), "suggested-action"),
-                                button(t("pSaveMove"), lambda k=k, e=e: e.get_text().strip() and confirm(t("pMoveConfirm")) and run("set_" + k + "_move", e.get_text().strip())),
-                                button(t("pDefault"), lambda k=k: run("set_" + k, "default")),
-                                button("📂", lambda k=k: app.open_path(k))), False, False, 0)
-        box.pack_start(label(t("pHint"), "sme-muted"), False, False, 0)
-        p.pack_start(card(box), False, False, 0)
-        # game folder, skse64.log, LOOT
-        g = S.get("game") or {}
-        box = vbox(6)
-        box.pack_start(label(t("gameTitle"), "sme-h2"), False, False, 0)
-        box.pack_start(label(t("gameDir"), "sme-muted"), False, False, 0)
-        ge = Gtk.Entry()
-        ge.set_text(g.get("saved") or g.get("dir") or "")
-        ge.set_placeholder_text("…/steamapps/common/Skyrim Special Edition")
-        box.pack_start(ge, False, False, 0)
-        box.pack_start(label((t("gameSaved") if g.get("saved") else t("gameAuto")) + ": " + g["dir"] if g.get("dir") else t("gameMissing"),
-                             "sme-ok" if g.get("dir") else "sme-bad"), False, False, 0)
-        def pick_game():
-            dlg = Gtk.FileChooserDialog(title=t("gameDir"), transient_for=win, action=Gtk.FileChooserAction.SELECT_FOLDER)
-            dlg.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
-            f = dlg.get_filename() if dlg.run() == Gtk.ResponseType.OK else None
-            dlg.destroy()
-            if f:
-                run("set_game", f)
-        box.pack_start(hbox(button(t("pSave"), lambda: ge.get_text().strip() and run("set_game", ge.get_text().strip()), "suggested-action"),
-                            button("📂", pick_game), button(t("gameAutoBtn"), lambda: run("set_game", "default"))), False, False, 0)
-        box.pack_start(label(t("skseLog"), "sme-muted"), False, False, 0)
-        le = Gtk.Entry()
-        le.set_text(g.get("skse_log") or "")
-        le.set_placeholder_text(t("skseLogDef"))
-        box.pack_start(le, False, False, 0)
-        box.pack_start(hbox(button(t("pSave"), lambda: le.get_text().strip() and run("set_skse_log", le.get_text().strip()), "suggested-action"),
-                            button(t("pDefaultShort"), lambda: run("set_skse_log", "default"))), False, False, 0)
-        lc = Gtk.CheckButton(label=t("lootUse"))
-        lc.set_active(bool(g.get("loot", True)))
-        lc.connect("toggled", lambda w: run("loot_on" if w.get_active() else "loot_off"))
-        box.pack_start(lc, False, False, 0)
-        box.pack_start(label(t("lootHelp"), "sme-muted"), False, False, 0)
-        p.pack_start(card(box), False, False, 0)
-        # Nexus
-        box = vbox(6)
-        box.pack_start(label(t("nexus"), "sme-h2"), False, False, 0)
-        nx = S.get("nexus")
-        if nx:
-            box.pack_start(label(f'{t("nxLogged")} {nx["name"]} ({t("nxPremium" if nx["premium"] else "nxFree")})'), False, False, 0)
-            box.pack_start(hbox(button(t("nxLogout"), lambda: (engine.nexus_logout(), refresh()))), False, False, 0)
-            if nx["premium"]:
-                box.pack_start(hbox(button(t("nxDownload"), lambda: (lambda v: v and run("nexus_download", v))(ask_text(t("nxAsk"))))), False, False, 0)
-        else:
-            box.pack_start(label(t("nxNone") + " " + t("nxKeyHelp"), "sme-muted"), False, False, 0)
-            def login():
-                key = ask_text(t("nxKey"), password=True)
-                if key:
-                    if not engine.nexus_login(key):
-                        info(t("nxLoginFail"))
-                    refresh()
-            box.pack_start(hbox(button(t("nxLogin"), login, "suggested-action")), False, False, 0)
-        box.pack_start(hbox(button(t("nxHandler"), lambda: run("nxm_handler"))), False, False, 0)
-        box.pack_start(label(t("nxHandlerHelp"), "sme-muted"), False, False, 0)
-        if nx:
-            box.pack_start(label(t("nxmPaste"), "sme-muted"), False, False, 0)
-            ne = Gtk.Entry()
-            ne.set_placeholder_text("nxm://skyrimspecialedition/mods/…")
-            ne.set_hexpand(True)
-            nrow = Gtk.Box(spacing=8)
-            nrow.pack_start(ne, True, True, 0)
-            nrow.pack_start(button(t("nxmGo"), lambda: run("nxm", ne.get_text().strip()) if ne.get_text().strip().startswith("nxm://") else info(t("nxmBad"))), False, False, 0)
-            box.pack_start(nrow, False, False, 0)
-        p.pack_start(card(box), False, False, 0)
-        # language
-        box = vbox(6)
-        box.pack_start(label(t("language"), "sme-h2"), False, False, 0)
-        cur_lang = S.get("lang") or "uk"
-        lang = choice([("uk", "Українська"), ("en", "English")], cur_lang, lambda i: None if i == cur_lang else (app.set_lang(i), refresh()))
-        box.pack_start(hbox(lang), False, False, 0)
-        p.pack_start(card(box), False, False, 0)
-
-    # ---------------------------------------------------------------- adding archives
-    def choose_files(title, patterns, multi):
-        dlg = Gtk.FileChooserDialog(title=title, transient_for=win, action=Gtk.FileChooserAction.OPEN)
-        dlg.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OPEN, Gtk.ResponseType.OK)
-        dlg.set_select_multiple(multi)
-        ff = Gtk.FileFilter()
-        ff.set_name(", ".join(patterns[:6]) + (" …" if len(patterns) > 6 else ""))
-        for pt in patterns:
-            ff.add_pattern(pt)
-            ff.add_pattern(pt.upper())
-        dlg.add_filter(ff)
-        res = dlg.get_filenames() if dlg.run() == Gtk.ResponseType.OK else []
-        dlg.destroy()
-        return res if multi else (res[0] if res else None)
-
-    def attach_collection(path):
-        try:
-            err = app.collection_from_upload(Path(path).read_bytes())
-        except OSError as ex:
-            err = str(ex)
-        if err:
-            info(t("busy") if err == "busy" else t("collBadFile") if err == "not a collection" else err)
-        poll()
-
-    def add_paths(paths):
-        """Dropped or chosen archives: linked/copied into the archives folder off the UI thread, then unpacked."""
-        colls = [x for x in paths if x.lower().endswith(".json")]
-        arcs = [x for x in paths if not x.lower().endswith(".json")]
-        if colls and confirm(t("collDropQ").replace("%s", Path(colls[0]).name).replace("%p", W.S.get("profile", ""))):
-            attach_collection(colls[0])
-        if not arcs:
-            return
-        if app.drop_extract():  # no copy: the engine unpacks them where they are
-            r = app.extract_paths(arcs)
-            if r["skipped"]:
-                info(t("dropSkipped") + ":\n" + "\n".join(f"{n} ({t('skip_' + w)})" for n, w in r["skipped"]))
-            if r.get("error"):
-                info(t("busy") if r["error"] == "busy" else r["error"])
-            poll()
-            return
-        jobl.set_text("⤒ " + ", ".join(Path(x).name for x in arcs[:3]) + (" …" if len(arcs) > 3 else ""))
-
-        def work():
-            r = app.import_paths(arcs)
-            def done():
-                if r["skipped"]:
-                    info(t("dropSkipped") + ":\n" + "\n".join(f"{n} ({t('skip_' + w) if t('skip_' + w) != 'skip_' + w else w})" for n, w in r["skipped"]))
-                if r["added"] and app.import_done(r["added"]):
-                    info(t("dropAddedBusy"))
-                poll()
-                refresh()
-                return False
-            GLib.idle_add(done)
-        threading.Thread(target=work, daemon=True).start()
-
-    def on_drop(_w, ctx, _x, _y, data, _info, tm):
-        paths = []
-        for u in data.get_uris() or []:
-            try:
-                paths.append(GLib.filename_from_uri(u)[0])
-            except Exception:
-                pass
-        Gtk.drag_finish(ctx, bool(paths), False, tm)
-        if paths:
-            GLib.idle_add(lambda: (add_paths(paths), False)[1])
-
-    win.drag_dest_set(Gtk.DestDefaults.ALL, [Gtk.TargetEntry.new("text/uri-list", 0, 0)], Gdk.DragAction.COPY)
-    win.connect("drag-data-received", on_drop)
-
-    # ---------------------------------------------------------------- FOMOD wizard
-    def fomod_start(mod, redo):
-        err = app.fomod_start(mod, redo)
-        if err:
-            info(t("busy") if err == "busy" else err)
-        poll()
-
-    def pixbuf_file(path, w, h):
-        if not GdkPixbuf:
-            return None
-        try:
-            return GdkPixbuf.Pixbuf.new_from_file_at_scale(str(path), w, h, True)
-        except Exception:
-            return None
-
-    def fomod_dialog(q):
-        """One FOMOD group: radio buttons or check boxes, description and picture of the hovered option."""
-        multi = q["type"] in ("SelectAny", "SelectAtLeastOne", "SelectAll")
-        default, req = set(q.get("default") or []), set(q.get("required") or [])
-        d = Gtk.Dialog(title=f'{q.get("mod") or "FOMOD"} — {q.get("step") or ""}', transient_for=win, modal=True)
-        d.add_button(t("fmCancel"), Gtk.ResponseType.CANCEL)
-        d.add_button(t("fmNext"), Gtk.ResponseType.OK).get_style_context().add_class("suggested-action")
-        d.set_default_size(min(980, max(640, win.get_allocated_width() - 80)), min(620, max(420, win.get_allocated_height() - 80)))
-        area = d.get_content_area()
-        area.set_spacing(8)
-        area.set_border_width(10)
-        area.pack_start(label(f'<b>{esc(q.get("module") or q.get("mod") or "")}</b>  <span foreground="#8a9ab5">{esc(q.get("step") or "")}</span>', markup=True), False, False, 0)
-        paned = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
-        left = vbox(4)
-        left.set_border_width(4)
-        left.pack_start(label(f'<b>{esc(q["group"])}</b>\n<span foreground="#8a9ab5" size="small">{esc(q.get("rule") or q["type"])}</span>', markup=True), False, False, 0)
-        img = Gtk.Image()
-        desc = label("", sel=True)
-        right_ = vbox(8)
-        right_.set_border_width(8)
-        right_.pack_start(img, False, False, 0)
-        right_.pack_start(desc, False, False, 0)
-        imgsize = (420, 300)
-
-        def show(i):
-            op = q["options"][i] if 0 <= i < len(q["options"]) else None
-            desc.set_text((op or {}).get("description") or "")
-            pb = pixbuf_file(op["image"], *imgsize) if op and op.get("image") and app.fomod_image(op["image"]) else None
-            (img.set_from_pixbuf(pb) if pb else img.clear())
-
-        widgets = []
-        group_ = None
-        for i, op in enumerate(q["options"]):
-            text = op["name"]
-            if multi:
-                w = Gtk.CheckButton(label=text)
-            else:
-                w = Gtk.RadioButton.new_with_label_from_widget(group_, text)
-                group_ = group_ or w
-            w.set_active(i in default or i in req or q["type"] == "SelectAll")
-            w.set_sensitive(op.get("usable", True) and i not in req and q["type"] != "SelectAll")
-            sub = " · ".join(x for x in [op.get("kind"), op.get("conflict")] + list(op.get("why") or []) if x)
-            row = vbox(0)
-            row.pack_start(w, False, False, 0)
-            if sub:
-                sl = label(sub, "sme-muted")
-                sl.set_margin_start(26)
-                row.pack_start(sl, False, False, 0)
-            ev = Gtk.EventBox()
-            ev.add(row)
-            ev.connect("enter-notify-event", lambda *_a, i=i: show(i))
-            w.connect("toggled", lambda b, i=i: b.get_active() and show(i))
-            left.pack_start(ev, False, False, 0)
-            widgets.append(w)
-        if q["type"] == "SelectAtMostOne":
-            w = Gtk.RadioButton.new_with_label_from_widget(group_, t("fmNone"))
-            w.set_active(not default)
-            left.pack_start(w, False, False, 0)
-        if q.get("error"):
-            left.pack_start(label("⚠ " + q["error"], "sme-bad"), False, False, 6)
-        for side, child in ((paned.pack1, left), (paned.pack2, right_)):
-            sc = Gtk.ScrolledWindow()
-            sc.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-            sc.add(child)
-            side(sc, True, False)
-        paned.set_position(380)
-        area.pack_start(paned, True, True, 0)
-        first = sorted(default)[0] if default else 0
-        show(first)
-        d.show_all()
-        r = d.run()
-        picked = [i for i, w in enumerate(widgets) if w.get_active()]
-        d.destroy()
-        return picked, r != Gtk.ResponseType.OK
-
-    def handle_question(q):
-        if not q or q.get("id") == W.q_shown or W.in_dialog:
-            return
-        W.q_shown = q["id"]
-        W.in_dialog = True
-        try:
-            picked, cancel = fomod_dialog(q)
-            app.answer(q["id"], picked, cancel)
-        finally:
-            W.in_dialog = False
-
-    # ---------------------------------------------------------------- Nexus mod browser
-    def br_search(offset=0):
-        b = W.br
-        b.update(offset=offset, loading=True, err="")
-        render_page("browse")
-
-        def work():
-            r = app.browse(b["q"], b["sort"], offset, 20, b["adult"])
-            def done():
-                b["loading"] = False
-                if r.get("error"):
-                    b.update(err=r["error"], res=None)
-                else:
-                    b["res"] = r
-                if stack.get_visible_child_name() == "browse":
-                    render_page("browse")
-                    stack.get_child_by_name("browse").get_vadjustment().set_value(0)  # a new page starts at its top
-                return False
-            GLib.idle_add(done)
-        threading.Thread(target=work, daemon=True).start()
-
-    def load_pic(url, img):
-        if url in W.pix:
-            if W.pix[url]:
-                img.set_from_pixbuf(W.pix[url])
-            return
-        W.pix[url] = None
-
-        def work():
-            f = app.thumb(url)
-            def done():
-                pb = pixbuf_file(f, 240, 135) if f else None
-                W.pix[url] = pb
-                if pb and img.get_parent() is not None:
-                    img.set_from_pixbuf(pb)
-                return False
-            GLib.idle_add(done)
-        threading.Thread(target=work, daemon=True).start()
-
-    def files_dialog(mod_id, name):
-        d = Gtk.Dialog(title=name, transient_for=win, modal=True)
-        d.add_button(t("fmClose"), Gtk.ResponseType.CLOSE)
-        d.set_default_size(min(860, max(560, win.get_allocated_width() - 120)), 480)
-        area = d.get_content_area()
-        area.set_border_width(10)
-        box = vbox(8)
-        sc = Gtk.ScrolledWindow()
-        sc.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
-        sc.add(box)
-        area.pack_start(label(f"<b>{esc(name)}</b> — {esc(t('brFilesOf'))}", markup=True), False, False, 0)
-        area.pack_start(sc, True, True, 0)
-        box.pack_start(label(t("brLoading"), "sme-muted"), False, False, 0)
-
-        def dl(fid, btn):
-            r = app.download(mod_id, fid)
-            if r.get("error"):
-                info(t("busy") if r["error"] == "busy" else r["error"])
-            elif r.get("result") == "job":
-                d.response(Gtk.ResponseType.CLOSE)
-                poll()
-            elif r.get("result") == "no-opener":
-                ask_text(t("brOpenManual") + "\n" + r["url"])
-            else:
-                btn.set_label("✔ " + t("brOpened"))
-
-        def fill(r):
-            clear(box)
-            if r.get("error"):
-                box.pack_start(label(t("brNeedLogin") if r["error"] == "login" else r["error"], "sme-warn"), False, False, 0)
-            else:
-                if not r.get("premium"):
-                    box.pack_start(label(t("brFreeNote"), "sme-muted"), False, False, 0)
-                if not r["files"]:
-                    box.pack_start(label("—", "sme-muted"), False, False, 0)
-                for f in r["files"]:
-                    txt = f'<b>{esc(f["name"] or "?")}</b>' + (f'  <span foreground="#7ee2ad">{esc(t("brMain"))}</span>' if f["primary"] else "") + \
-                          f'\n<span foreground="#8a9ab5" size="small">{esc(f["category"])} · v{esc(str(f["version"] or "?"))} · {esc(fmt_size(f["size"]))}</span>'
-                    if f.get("description"):
-                        txt += "\n<small>" + esc(re.sub(r"<[^>]*>|\[[^\]]*\]", " ", f["description"])[:300]) + "</small>"
-                    lb = label(txt, markup=True)
-                    btn = Gtk.Button(label=t("brDownload" if r.get("premium") else "brViaSite"))
-                    btn.get_style_context().add_class("suggested-action")
-                    btn.connect("clicked", lambda b, fid=f["file_id"]: dl(fid, b))
-                    btn.set_valign(Gtk.Align.CENTER)
-                    row = Gtk.Box(spacing=10)
-                    row.pack_start(lb, True, True, 0)
-                    row.pack_end(btn, False, False, 0)
-                    box.pack_start(card(row), False, False, 0)
-            box.show_all()
-            return False
-
-        def work():
-            r = app.mod_files(mod_id)
-            GLib.idle_add(lambda: fill(r))
-        threading.Thread(target=work, daemon=True).start()
-        d.show_all()
-        d.run()
-        d.destroy()
-
-    def page_list(page, pages):
-        """1 … p-2 p-1 p p+1 p+2 … N (None = gap)."""
-        if not pages:
-            return list(range(max(1, page - 2), page + 1))
-        keep = sorted({1, pages} | set(range(max(1, page - 2), min(pages, page + 2) + 1)))
-        out, prev = [], 0
-        for n in keep:
-            if n - prev > 1:
-                out.append(None)
-            out.append(n)
-            prev = n
-        return out
-
-    def pager(r):
-        b = W.br
-        cnt = r.get("count") or 20
-        page, pages = r.get("page") or 1, r.get("pages")
-        box = Gtk.Box(spacing=4)
-        box.set_halign(Gtk.Align.CENTER)
-        go = lambda n: br_search(max(0, (n - 1) * cnt))
-        prev = button("←", lambda: go(page - 1))
-        prev.set_sensitive(page > 1)
-        box.pack_start(prev, False, False, 0)
-        for n in page_list(page, pages):
-            if n is None:
-                box.pack_start(label("…", "sme-muted", wrap=False), False, False, 4)
-            elif n == page:
-                cur = Gtk.Button(label=str(n))
-                cur.get_style_context().add_class("suggested-action")
-                box.pack_start(cur, False, False, 0)
-            else:
-                box.pack_start(button(str(n), lambda n=n: go(n)), False, False, 0)
-        nxt = button("→", lambda: go(page + 1))
-        nxt.set_sensitive(bool(r.get("has_more")) and r.get("source") == "graphql")
-        box.pack_start(nxt, False, False, 0)
-        if pages:
-            box.pack_start(label(f'  {t("brPageOf").replace("%p", str(page)).replace("%n", str(pages))}', "sme-muted", wrap=False), False, False, 0)
-        return box
-
-    def render_browse(p):
-        S, b = W.S, W.br
-        lg, pr = bool(S.get("nexus")), bool(S.get("nexus") and S["nexus"]["premium"])
-        page_header(p, t("browse"), t("brIntroPr" if pr else "brIntroFree" if lg else "brIntroAnon"))
-        ent = Gtk.SearchEntry()
-        ent.set_text(b["q"])
-        ent.set_placeholder_text(t("brSearch"))
-        ent.set_hexpand(True)
-
-        def go(*_):
-            b["q"] = ent.get_text()
-            br_search(0)
-        ent.connect("activate", go)
-        sorts = [("endorsements", t("brSortEnd")), ("downloads", t("brSortDl")), ("updated", t("brSortUpd")), ("new", t("brSortNew"))]
-        srt = choice(sorts, b["sort"], lambda k: (b.update(sort=k, q=ent.get_text()), br_search(0)))
-        adult = Gtk.CheckButton(label="18+")
-        adult.set_active(b["adult"])
-        adult.connect("toggled", lambda w: (b.update(adult=w.get_active()), b["res"] and br_search(0)))
-        bar = Gtk.Box(spacing=8)
-        bar.pack_start(ent, True, True, 0)
-        for w in (srt, adult, button(t("brGo"), go, "suggested-action")):
-            bar.pack_start(w, False, False, 0)
-        p.pack_start(bar, False, False, 0)
-        r = b["res"]
-        if b["loading"]:
-            p.pack_start(label(t("brLoading"), "sme-muted"), False, False, 0)
-            return
-        if b["err"]:
-            p.pack_start(label(b["err"], "sme-warn"), False, False, 0)
-            if not lg:
-                p.pack_start(label(t("brNeedLogin"), "sme-muted"), False, False, 0)
-            return
-        if not r:
-            p.pack_start(label(t("brHint"), "sme-muted"), False, False, 0)
-            GLib.idle_add(lambda: (br_search(0), False)[1])
-            return
-        p.pack_start(label(f'{t("brFound")}: {r["total"] if r.get("total") is not None else "?"}' + (f' · {t("brHidden")}: {r["hidden_adult"]}' if r.get("hidden_adult") else ""), "sme-muted"), False, False, 0)
-        p.pack_start(pager(r), False, False, 0)
-        flow = Gtk.FlowBox()
-        flow.set_selection_mode(Gtk.SelectionMode.NONE)
-        flow.set_max_children_per_line(4)
-        flow.set_min_children_per_line(1)
-        flow.set_column_spacing(10)
-        flow.set_row_spacing(10)
-        flow.set_homogeneous(True)
-        for m in r["mods"]:
-            c = vbox(6)
-            img = Gtk.Image()
-            img.set_size_request(240, 135)
-            if m.get("picture"):
-                load_pic(m["picture"], img)
-            c.pack_start(img, False, False, 0)
-            nm = label(f'<b>{esc(m["name"] or "?")}</b>' + (f'  <span foreground="#7ee2ad">{esc(t("brHave"))}</span>' if m.get("installed") else ""), markup=True)
-            nm.set_max_width_chars(30)
-            c.pack_start(nm, False, False, 0)
-            c.pack_start(label(f'{m.get("author") or ""}{" · v" + str(m["version"]) if m.get("version") else ""} · 👍 {m.get("endorsements") or 0} · ⬇ {m.get("downloads") or 0}', "sme-muted"), False, False, 0)
-            sm = label((m.get("summary") or "")[:220])
-            sm.set_max_width_chars(34)
-            sm.set_lines(4)
-            sm.set_ellipsize(Pango.EllipsizeMode.END)
-            c.pack_start(sm, False, False, 0)
-            acts = Gtk.Box(spacing=6)
-            if lg:
-                acts.pack_start(button(t("brDownload" if pr else "brFiles"), lambda m=m: files_dialog(m["mod_id"], m["name"]), "suggested-action"), False, False, 0)
-            acts.pack_start(button(t("brPage"), lambda m=m: open_url(m["url"])), False, False, 0)
-            c.pack_end(acts, False, False, 0)
-            flow.add(card(c))
-        p.pack_start(flow, False, False, 0)
-        p.pack_start(pager(r), False, False, 0)
-
-    def render_diag(p):
-        page_header(p, t("diag"), t("dgIntro"))
-        try:
-            secs = app.diagnostics("gtk")
-        except Exception:
-            import traceback
-            p.pack_start(label(traceback.format_exc()[-1500:], "sme-bad", sel=True), False, False, 0)
-            return
-        dg = lambda v: re.sub(r"\bdg[A-Z]\w*\b", lambda m: t(m.group(0)), str(v))
-        sym = {"ok": ("✔", "#1fbf73"), "warn": ("⚠", "#e0a43a"), "bad": ("✖", "#e2554f"), "info": ("•", "#8a9ab5")}
-
-        def report():
-            tag = {"ok": "OK  ", "warn": "WARN", "bad": "FAIL", "info": "    "}
-            txt = f"Skyrim Mod Engine — {t('diag')} ({datetime.now().astimezone().isoformat(timespec='seconds')})\n" + "\n".join(
-                f"\n== {t(s_['key'])} ==\n" + "\n".join(f"[{tag[r['st']]}] {t(r['k'])}: {dg(r['v'])}" for r in s_["rows"]) for s_ in secs if not s_.get("quick"))
-            Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD).set_text(txt, -1)
-            copy_btn.set_label("✔ " + t("dgCopied"))
-        copy_btn = button(t("dgCopy"), report, "suggested-action")
-        p.pack_start(hbox(copy_btn, button(t("dgRefresh"), lambda: render_page("diag"))), False, False, 0)
-        qf = Gtk.FlowBox()
-        qf.set_selection_mode(Gtk.SelectionMode.NONE)
-        qf.set_max_children_per_line(6)
-        for x in (secs[0].get("quick") or []) if secs else []:
-            qb = button("📂 " + t(x["k"]), lambda pth=x["path"]: app.open_any(pth))
-            qb.set_tooltip_text(x["path"])
-            qf.add(qb)
-        p.pack_start(qf, False, False, 0)
-        for s_ in secs:
-            if s_.get("quick"):
-                continue
-            g = Gtk.Grid(column_spacing=10, row_spacing=4)
-            g.attach(label(t(s_["key"]), "sme-h2"), 0, 0, 4, 1)
-            for i, r in enumerate(s_["rows"], 1):
-                ch, col = sym[r["st"]]
-                g.attach(label(f'<span foreground="{col}">{ch}</span>', markup=True, wrap=False), 0, i, 1, 1)
-                k = label(t(r["k"]), "sme-muted")
-                k.set_size_request(230, -1)
-                g.attach(k, 1, i, 1, 1)
-                v = label(dg(r["v"]), "sme-log", sel=True)
-                v.set_hexpand(True)
-                g.attach(v, 2, i, 1, 1)
-                if r.get("path"):
-                    ob = button("📂", lambda pth=r["path"]: app.open_any(pth))
-                    ob.set_tooltip_text(r["path"])
-                    ob.set_valign(Gtk.Align.START)
-                    g.attach(ob, 3, i, 1, 1)
-            p.pack_start(card(g), False, False, 0)
-
-    RENDER = {"diag": render_diag, "browse": render_browse, "fomod": render_fomod, "collection": render_collection, "plugins": render_plugins, "deps": render_deps,
-              "conflicts": render_conflicts, "deploy": render_deploy, "backups": render_backups, "settings": render_settings}
-
-    def wrap_toggles(w):
-        """Check boxes and radio buttons keep their text on one line by default: let it wrap."""
-        if isinstance(w, (Gtk.CheckButton, Gtk.RadioButton)):
-            ch = w.get_child()
-            if isinstance(ch, Gtk.Label):
-                ch.set_line_wrap(True)
-                ch.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                ch.set_xalign(0.0)
-        if isinstance(w, Gtk.Container):
-            for c in w.get_children():
-                wrap_toggles(c)
-
-    def render_page(name):
-        if name == "term":
-            term_texts()
-            return
-        if name == "mods":
-            return
-        p = pages[name]
-        W.building = True
-        clear(p)
-        p.set_border_width(4)
-        RENDER[name](p)
-        wrap_toggles(p)
-        tail = Gtk.Box()
-        tail.set_size_request(-1, 80)  # empty space after the last item: the bottom of a page is never hidden
-        p.pack_start(tail, False, False, 0)
-        p.show_all()
-        W.building = False
-
-    def titles():
-        S = W.S
-        counts = {"mods": len(S["mods"]), "fomod": len(S["fomods"]), "conflicts": S["conflicts"]["pairs_total"] or "",
-                  "deps": len(S["problems"]) or "", "plugins": len(S["deployed"]["plugins"]) if S.get("deployed") else "",
-                  "collection": sum(1 for m in (S.get("collection") or {}).get("mods", []) if not m["have"] and not m["optional"]) or "",
-                  "backups": "!" if not (S.get("protection") or {}).get("asked") or not S.get("baseline") else ""}
-        for k in PAGE_KEYS:
-            child = stack.get_child_by_name(k)
-            n = counts.get(k, "")
-            stack.child_set_property(child, "title", t("home" if k == "mods" else k) + (f"  ({n})" if n != "" else ""))
-        add_btn.set_label("＋ " + t("addMods"))
-        items = [(t("pickArchives"), lambda: (lambda fs: fs and add_paths(fs))(choose_files(t("pickArchives"), [f"*{x}" for x in ARCHIVE_EXTS], True))),
-                 (t("openArchives"), lambda: app.open_path("archives")), (t("extract"), lambda: run("scan")),
-                 (t("extractSuffix"), lambda: run("scan_suffix"))]
-        if S.get("nexus") and S["nexus"]["premium"]:
-            items.append((t("nxDownload"), lambda: (lambda v: v and run("nexus_download", v))(ask_text(t("nxAsk")))))
-        add_btn.set_popover(popover_menu(add_btn, items))
-        extract_btn.set_label("⤓ " + t("extract"))
-        fomod_btn.set_label("⬢ " + t("installFomod"))
-        search.set_placeholder_text(t("search"))
-        for k in ("#", "colName", "colCat", "colVer", "colStatus"):
-            cols[k].set_title("#" if k == "#" else t(k))
-        loglabel.set_text(t("log"))
-        win.set_title(f"Skyrim Mod Engine v{S.get('version', '?')} — {S['profile']}")
-
-    def refresh():
-        try:
-            W.S = app.state()
-        except Exception:
-            import traceback
-            append_log("ERROR (state)\n" + traceback.format_exc())
-            return
-        if W.sel and not any(m["name"] == W.sel for m in W.S["mods"]):
-            W.sel = None
-        if not W.sel and W.S["mods"]:
-            W.sel = W.S["mods"][0]["name"]
-        titles()
-        fill_mods()
-        render_mod_banners()
-        render_page(stack.get_visible_child_name())
-        render_right()
-        if isinstance(banner, Gtk.Label):
-            banner.set_markup(f'<b>Skyrim Mod Engine</b>  <span foreground="#8a9ab5" size="small">v{esc(str(W.S.get("version", "?")))} · {esc(t("tagline"))}</span>')
-        else:
-            banner.queue_draw()
-        job_line()
-
-    def on_page(*_):
-        if W.S:
-            render_page(stack.get_visible_child_name())
-            render_right()
-    stack.connect("notify::visible-child-name", on_page)
-
-    W.all_lines, W.nprob, W.lastprob = [], 0, ""
-
-    W.in_tb = False
-
-    def keep_line(line):
-        if line.startswith("Traceback"):
-            W.in_tb = True
-            return True
-        if W.in_tb:  # the whole traceback, down to the exception line itself
-            if not line[:1].isspace():
-                W.in_tb = False
-            return True
-        return bool(GUI_PROBLEM_RE.search(line) or GUI_WARN_RE.search(line) or line.startswith("$ "))
-
-    def show_line(buf, line):
-        if prob_only.get_active() and not keep_line(line):
-            return
-        if buf.get_char_count():
-            buf.insert(buf.get_end_iter(), "\n")
-        tag = "bad" if GUI_PROBLEM_RE.search(line) else "warn" if GUI_WARN_RE.search(line) else None
-        if tag:
-            buf.insert_with_tags_by_name(buf.get_end_iter(), line, tag)
-        else:
-            buf.insert(buf.get_end_iter(), line)
-
-    def append_log(text):
-        buf = logview.get_buffer()
-        lines = text.split("\n")
-        W.all_lines.extend(lines)
-        if len(W.all_lines) > 60000:  # the window keeps the newest part; the full text is in the RAM log file
-            W.all_lines = W.all_lines[-40000:]
-        for line in lines:
-            if line.startswith("$ "):
-                W.nprob, W.lastprob = 0, ""
-            elif GUI_PROBLEM_RE.search(line):
-                W.nprob, W.lastprob = W.nprob + 1, line
-            show_line(buf, line)
-        if buf.get_char_count() > 3000000:
-            buf.delete(buf.get_start_iter(), buf.get_iter_at_offset(buf.get_char_count() - 2000000))
-        logview.scroll_to_mark(buf.get_insert(), 0, False, 0, 0)
-        buf.place_cursor(buf.get_end_iter())
-        probbtn.set_label(f"⚠ {W.nprob}")
-        probbtn.set_visible(W.nprob > 0)
-
-    def repaint_log(*_):
-        buf = logview.get_buffer()
-        buf.set_text("")
-        W.in_tb = False
-        for line in W.all_lines:
-            show_line(buf, line)
-        buf.place_cursor(buf.get_end_iter())
-        logview.scroll_to_mark(buf.get_insert(), 0, False, 0, 0)
-    prob_only.connect("toggled", repaint_log)
-    probbtn.connect("clicked", lambda *_: (prob_only.set_active(True), stack.set_visible_child_name("term")))
-
-    def job_line():
-        j = app.job
-        running = bool(j and j.get("running"))
-        (spinner.start if running else spinner.stop)()
-        jobl.set_text((t("working") + " " + " ".join(j["args"])) if running else (f"rc={j['rc']}" if j and j.get("rc") else t("idle")))
-
-    def poll():
-        r = app.log_since(W.log_from)
-        if r["lines"]:
-            append_log("\n".join(r["lines"]))
-        part = r.get("partial") or ""
-        last = part or next((x for x in reversed(r["lines"]) if x.strip()), None)
-        job_on = bool(r["job"] and r["job"].get("running"))
-        if not job_on and W.lastprob:
-            last = W.lastprob  # after the job: the last error stays visible, not the closing summary
-        if last is not None:
-            lastl.set_text(last.strip())
-            lastl.set_tooltip_text(last)
-            sc_ = lastl.get_style_context()
-            (sc_.add_class if GUI_PROBLEM_RE.search(last) else sc_.remove_class)("sme-bad")
-        term_part.set_text(part)
-        term_part.set_visible(bool(part))
-        tj = term_job()
-        if tj != getattr(W, "was_term", False):
-            W.was_term = tj
-            term_texts()
-        W.log_from = r["next"]
-        if r.get("question") and not W.in_dialog:
-            GLib.idle_add(lambda q=r["question"]: (handle_question(q), False)[1])
-        running = bool(r["job"] and r["job"].get("running"))
-        if W.was_running and not running:
-            refresh()
-        elif running != W.was_running:
-            render_right()
-        W.was_running = running
-        job_line()
-        return True
-
-    def on_close(*_):
-        if app.job and app.job.get("running"):
-            info(t("busy"))
-            return True  # never leave a deployment half-done by closing the window
-        Gtk.main_quit()
-        return False
-    win.connect("delete-event", on_close)
-
-    GLib.timeout_add(400, poll)
-    win.show_all()
-    win.maximize()
-    refresh()
-    if not engine.load_baseline(app.out) and engine.find_game_dir(None):
-        GUI_ACTIONS["baseline_auto"] = ["--game-baseline"]
-        app.start("baseline_auto")
-    if on_ready:
-        on_ready({"win": win, "app": app, "stack": stack, "tree": tree, "refresh": refresh, "run": run, "W": W,
-                  "pages": pages, "right": right, "GLib": GLib, "Gtk": Gtk})
-    Gtk.main()
-    return 0
-
 
 def ask(prompt: str) -> str:
     """input() that does not crash without a terminal (shortcut, background run): EOF = default answer."""
@@ -10459,6 +9995,14 @@ def main() -> int:
     parser.add_argument("--skse-log", help=tr("Шлях до skse64.log (за замовч. шукається в compatdata Proton)."))
     parser.add_argument("--profile", help=tr("Профіль, з яким працювати (запам'ятовується). За замовч. — останній вибраний, спершу Default."))
     parser.add_argument("--profile-new", metavar="NAME", help=tr("Створити новий профіль і перемкнутися на нього: усі моди вимкнені, а з --collection/--collection-nexus увімкнені моди колекції."))
+    parser.add_argument("--remove-mod", metavar="NAME", help=tr("Видалити мод: папку, FOMOD-варіанти й архів (у кошик, якщо він є)."))
+    parser.add_argument("--check-updates", nargs="?", const="auto", choices=("auto", "full"), help=tr("Перевірити на Nexus, чи вийшли нові версії встановлених модів (full — перечитати всі моди, а не лише оновлені)."))
+    parser.add_argument("--update-mod", metavar="NAME", help=tr("Оновити мод до знайденої нової версії: завантажити (Premium) і замінити на місці — порядок, увімкнення й вибір FOMOD лишаються."))
+    parser.add_argument("--update-all", action="store_true", help=tr("Оновити всі моди, для яких знайдено нові версії (завантаження — з Premium)."))
+    parser.add_argument("--plugin-order", metavar="JSON|FILE|reset", help=tr("Власний порядок плагінів профілю (вище — раніше, нижче — перемагає): JSON-список, файл у форматі plugins.txt або reset. Якщо розгортання актуальне — одразу переписує plugins.txt."))
+    parser.add_argument("--papyrus-log", choices=["on", "off"], help=tr("Увімкнути/вимкнути лог скриптів Papyrus у Skyrim.ini префікса (оригінал зберігається в backup)."))
+    parser.add_argument("--game-logs", action="store_true", help=tr("Логи гри, SKSE, модів, краш-логи й Papyrus: список з кількістю помилок і підказками з останнього краш-логу."))
+    parser.add_argument("--keep-archive", action="store_true", help=tr("З --remove-mod: архів лишити (і більше не розпаковувати)."))
     parser.add_argument("--profile-delete", metavar="NAME", help=tr("Видалити профіль (не активний і не розгорнутий)."))
     parser.add_argument("--profiles", action="store_true", help=tr("Показати список профілів."))
     parser.add_argument("--nexus-login", nargs="?", const="", metavar="KEY", help=tr("Увійти в Nexus Mods персональним API-ключем (без KEY — запитає)."))
@@ -10468,6 +10012,7 @@ def main() -> int:
     parser.add_argument("--nxm", metavar="URL", help=tr("Обробити посилання nxm:// («Mod Manager Download» на сайті)."))
     parser.add_argument("--nxm-handler", action="store_true", help=tr("Зареєструвати скрипт як обробник посилань nxm:// у системі."))
     parser.add_argument("--collection-nexus", metavar="LINK", help=tr("Взяти колекцію прямо з Nexus: посилання на сторінку колекції, nxm:// або її код."))
+    parser.add_argument("--skse-ensure", action="store_true", help=tr("Якщо якийсь мод потребує SKSE, а його немає — завантажити (з Premium) або попередити."))
     parser.add_argument("--skse-install", action="store_true", help=tr("Завантажити з Nexus SKSE, що підходить до версії гри."))
     parser.add_argument("--collection-download", action="store_true", help=tr("Завантажити відсутні архіви колекції з Nexus (лише Premium)."))
     parser.add_argument("--with-optional", action="store_true", help=tr("З --collection-download: також необов'язкові моди колекції."))
@@ -10482,7 +10027,7 @@ def main() -> int:
     parser.add_argument("--game-repair", action="store_true", help=tr("Прибрати зайве з гри й повернути змінені файли з бекапів (решту — перевіркою Steam)."))
     parser.add_argument("--game-baseline", action="store_true", help=tr("Заново зберегти список файлів гри з SHA-1 (напр., після оновлення Steam)."))
     parser.add_argument("--backup-delete", metavar="NAME", help=tr("Видалити бекап гри."))
-    parser.add_argument("--gui", nargs="?", const="auto", choices=("auto", "app", "gtk", "web"), help=tr("Графічний інтерфейс: вікно GTK, якщо є, інакше сторінка в браузері (також: подвійний клік по скрипту). gtk/web — примусово."))
+    parser.add_argument("--gui", nargs="?", const="auto", choices=("auto", "app", "gtk", "web"), help=tr("Графічний інтерфейс у вікні програми (WebKit, Chromium/Vivaldi або Firefox), інакше вкладкою в браузері (також: подвійний клік по скрипту). web — одразу вкладкою."))
     parser.add_argument("--lang", choices=LANGS, help="Interface language / мова інтерфейсу: en, uk (remembered / запам'ятовується).")
     args = parser.parse_args()
     if args.lang:
@@ -10490,13 +10035,9 @@ def main() -> int:
     # Double-click in a file manager: no arguments and no terminal -> graphical interface.
     if args.gui or (len(sys.argv) == 1 and not sys.stdin.isatty()):
         mode = args.gui or "auto"
-        if mode in ("auto", "app") and not app_window_available() and gtk_available() \
-                and (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
-            mode = "gtk"  # nothing to show the page in: the native window needs only GTK, which SteamOS has
-        if mode == "gtk":  # the older native window (kept for now, no new features)
-            if gtk_available() and (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")):
-                return gtk_run(sys.modules[__name__], Path(__file__).resolve(), args.output)
-            print(tr("GTK 3 (PyGObject) недоступний — відкриваю інтерфейс у браузері."))
+        if mode == "gtk":  # the native GTK window was removed in 0.12: the app window replaces it
+            print(tr("Окремого GTK-інтерфейсу більше немає — відкриваю інтерфейс у вікні програми."))
+            mode = "app"
         return gui_run(sys.modules[__name__], Path(__file__).resolve(), args.output,
                        mode="tab" if mode == "web" else "app")
 
@@ -10573,8 +10114,27 @@ def main() -> int:
         update_settings(output_root, profile=profile)
     if args.profile_delete:
         delete_profile(output_root, mods_root, args.profile_delete, profile)
+    remove_rc = 0
+    if args.remove_mod:
+        remove_rc = remove_mod(output_root, mods_root, archives_root, args.remove_mod, args.keep_archive)
+        if not (args.yes or args.scan_only or args.fomod or args.fomod_redo or args.deploy):
+            return remove_rc
     pdir = profile_dir(output_root, profile)
     modlist_path = pdir / "modlist.txt"
+    if args.plugin_order is not None:
+        try:
+            uo = parse_plugin_order_arg(args.plugin_order)
+        except (OSError, ValueError) as ex:
+            print(tr("Порядок плагінів не прочитано: {0}", ex))
+            return 1
+        pdir.mkdir(parents=True, exist_ok=True)
+        if uo and uo["order"]:
+            (pdir / USER_PLUGIN_ORDER).write_text(json.dumps(uo, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(tr("Власний порядок плагінів профілю «{0}» збережено: {1} плагін(ів), вимкнено {2}.",
+                     profile, len(uo["order"]), len(uo["disabled"])))
+        else:
+            (pdir / USER_PLUGIN_ORDER).unlink(missing_ok=True)
+            print(tr("Власний порядок плагінів профілю «{0}» скинуто — знову діють LOOT і правила рушія.", profile))
 
     if args.backup_game is not None:
         update_settings(output_root, protection_asked=True)
@@ -10670,6 +10230,12 @@ def main() -> int:
     if args.collection_nexus:
         if not fetch_collection(args.collection_nexus, output_root, pdir):
             nexus_rc = 1
+    if args.skse_ensure:
+        gd = find_game_dir(args.game)
+        if gd:
+            skse_ensure(gd, mods_root, archives_root, output_root)
+        else:
+            print(tr('\nПапку гри не знайдено. Вкажи її через --game "/шлях/до/Skyrim Special Edition"'))
     if args.skse_install:
         gd = find_game_dir(args.game)
         if not gd:
@@ -10684,6 +10250,53 @@ def main() -> int:
             nexus_rc = 1
         else:
             nexus_rc = collection_download(c, archives_root, output_root, args.with_optional) or nexus_rc
+    if args.check_updates:
+        acc = nexus_account()
+        if not acc:
+            print(tr("Спершу увійди в Nexus: --nexus-login"))
+            return 1
+        try:
+            check_updates(output_root, archives_root, acc["api_key"], full=args.check_updates == "full")
+        except NexusError as ex:
+            print(tr("ПОМИЛКА: {0}", ex))
+            return 1
+        if not (args.update_all or args.update_mod or args.yes or args.deploy):
+            return 0
+    if args.update_mod or args.update_all:
+        acc = nexus_account()
+        res = load_updates(output_root).get("results") or {}
+        if args.update_all:
+            todo = [r for r in res.values() if r.get("status") in ("update", "downloaded")]
+        else:
+            fm = FOMOD_OUT_RE.match(args.update_mod)
+            base = fm.group(1) if fm and (mods_root / fm.group(1)).is_dir() else args.update_mod
+            todo = [r for r in res.values() if r.get("folder") == base and r.get("status") in ("update", "downloaded")]
+            if not todo:
+                print(tr("Для «{0}» нової версії не знайдено — спершу --check-updates", base))
+                return 1
+        print(tr("\n=== ОНОВЛЕННЯ МОДІВ: {0} ===", len(todo)))
+        failed = 0
+        for r in todo:
+            if r["status"] == "downloaded":
+                print(tr("{0}: новий архів уже є — розпакую", r["folder"]))
+                continue
+            if not acc:
+                print(tr("Спершу увійди в Nexus: --nexus-login"))
+                return 1
+            if not acc.get("is_premium"):
+                print(tr("{0}: без Premium завантаж файл на сайті («Mod Manager Download»), потім «Розпакувати нові»:\n  {1}",
+                         r["folder"], nexus_mm_url(int(r["mod"]), int(r["target"]))))
+                failed += 1
+                continue
+            print(f"{r['folder']}: {r.get('cur_version') or '?'} → {r.get('version') or '?'}", flush=True)
+            try:
+                nexus_download(int(r["mod"]), int(r["target"]), archives_root, acc["api_key"])
+            except NexusError as ex:
+                print(tr("  ПОМИЛКА: {0}", ex))
+                failed += 1
+        nexus_rc = 1 if failed else nexus_rc
+        args.yes = True  # unpack: the new archives replace the old versions in place
+        args.scan_only = False
     if (args.nexus_logout or args.nexus_login is not None or args.nexus_status or args.nxm_handler) \
             and not (args.nexus_download or args.collection_download):
         return 0
@@ -10728,11 +10341,16 @@ def main() -> int:
 
     skipped_known = 0
     new_this_run: set[str] = set()  # mods extracted now: enabled in the active profile
+    updated_mods: set[str] = set()  # replaced in place by a newer version of the same Nexus file
     for archive in archive_paths:
         # Outside the archives folder the full path is the key (an archive unpacked straight from Downloads).
         rel = str(archive.relative_to(archives_root)) if archive.is_relative_to(archives_root) else str(archive)
         st = archive.stat()
         prev = state.get(rel, {})
+        if prev.get("removed") and prev.get("size") == st.st_size and prev.get("mtime_ns") == st.st_mtime_ns:
+            report["archives"].append({"archive": rel, "size": human_size(st.st_size), "status": "removed"})
+            skipped_known += 1
+            continue  # the player removed this mod and kept the archive
         # Re-hash only when size or mtime changed: hashing gigabytes on every run is slow on the Deck.
         if prev.get("size") == st.st_size and prev.get("mtime_ns") == st.st_mtime_ns and prev.get("sha256"):
             digest = prev["sha256"]
@@ -10797,7 +10415,12 @@ def main() -> int:
             continue
 
         destination = mods_root / mod_name
+        update_of = None
         if destination.exists():
+            update_of = archive_update_of(output_root, state, archive, destination)
+        if update_of:
+            print(tr("  Нова версія мода «{0}» (було: {1}) — замінюю на місці, порядок і вибір лишаються", destination.name, Path(update_of).name))
+        elif destination.exists():
             print(tr("  Папка вже існує: {0}", destination.name))
             if args.yes and args.collision != "suffix":
                 print(tr("  --yes задано, але наявну папку не перезаписую; архів пропущено.\n"))
@@ -10826,6 +10449,13 @@ def main() -> int:
         staging = mods_root / f"{STAGING_PREFIX}{destination.name}"
         if staging.exists():
             shutil.rmtree(staging)
+        if update_of and not args.yes:
+            answer = ask(tr("  Замінити «{0}» новою версією? [Y/n]: ", destination.name))
+            if answer not in ("", "y", "yes", "т", "так"):
+                print(tr("  Пропущено.\n"))
+                rec["status"] = "skipped"
+                report["archives"].append(rec)
+                continue
         try:
             if is_zip:
                 try:
@@ -10845,8 +10475,12 @@ def main() -> int:
             links = [str(p.relative_to(staging)) for p in staging.rglob("*") if p.is_symlink()]
             if links:
                 raise RuntimeError(tr("Архів містить символьні посилання, моди їх не потребують: ") + ", ".join(links[:5]))
+            if update_of:
+                finish_mod_update(output_root, mods_root, archives_root, state, update_of, destination)
+                updated_mods.add(destination.name)
             staging.rename(destination)
-            new_this_run.add(destination.name)
+            if not update_of:
+                new_this_run.add(destination.name)
             rec.update(status="installed", mod=destination.name)
             if warnings:
                 rec["warnings"] = warnings[:10]
@@ -10887,6 +10521,25 @@ def main() -> int:
         gv = pe_file_version(gexe) if gexe else None
         collection_report(coll, cmatch, archives_root, output_root, ".".join(map(str, gv)) if gv else None)
     fomod_new: set[str] = set()
+    if updated_mods:  # an updated FOMOD mod: reinstall its variant in place with the saved choices
+        folders_now = {p.name for p in mods_root.iterdir() if p.is_dir()}
+        owned_now = fomod_owned(pdir, {m["name"] for m in report["mods"] if m["layout"] == "fomod"}, folders_now)
+        for name in sorted(updated_mods):
+            variant = owned_now.get(name)
+            if not variant:
+                continue
+            print(tr("\nОновлений FOMOD-мод «{0}»: перевстановлюю «{1}» зі збереженим вибором", name, variant))
+            install_fomods(mods_root, output_root, report["mods"], find_game_dir(args.game), False, True,
+                           collection_fomod_choices(coll, idx_to_mod) if coll else None, profile, pdir, name)
+            if (mods_root / variant).is_dir():
+                sv = summarize_mod(mods_root / variant, index_dir)
+                live_index.add(sv["index"])
+                report["mods"] = [m for m in report["mods"] if m["name"] != variant] + [sv]
+            mark_redeploy(output_root, variant)
+            others = [pn for pn in list_profiles(output_root) if pn != profile
+                      and fomod_owned(profile_dir(output_root, pn), {name}, folders_now).get(name)]
+            if others:
+                print(tr("  У профілях {0} цей мод теж встановлено — перевстанови його там («Пакети» → «Вибрати варіанти» або --fomod-redo).", ", ".join(others)))
     if args.fomod or args.fomod_redo:
         interactive = (sys.stdin.isatty() or FOMOD_IO or os.environ.get("SME_TERM") == "1") and not args.auto and not args.yes
         new_dirs, renames = install_fomods(mods_root, output_root, report["mods"], find_game_dir(args.game),
@@ -11011,6 +10664,25 @@ def main() -> int:
             deploy_ok = deploy(game, mods_root, output_root, on_mods, on_order, args.dry_run,
                    use_loot=not args.no_loot, loot_update=args.loot_update, coll=coll,
                    profile=profile, pdir=pdir)
+    elif args.plugin_order is not None:
+        game = find_game_dir(args.game)
+        if not (game and reapply_plugin_order(game, mods_root, output_root, on_mods, on_order,
+                                              not args.no_loot, coll, profile, pdir)):
+            print(tr("Новий порядок застосується при наступному розгортанні (--deploy)."))
+
+    if args.papyrus_log:
+        game = find_game_dir(args.game)
+        if not game:
+            print(tr('\nПапку гри не знайдено. Вкажи її через --game "/шлях/до/Skyrim Special Edition"'))
+        else:
+            set_papyrus_logging(game, output_root, args.papyrus_log == "on")
+
+    if args.game_logs:
+        game = find_game_dir(args.game)
+        if not game:
+            print(tr('\nПапку гри не знайдено. Вкажи її через --game "/шлях/до/Skyrim Special Edition"'))
+        else:
+            print_game_logs(game)
 
     if args.skse_launcher or args.skse_launcher_restore:
         game = find_game_dir(args.game)
@@ -11047,7 +10719,7 @@ def main() -> int:
         print_profiles(output_root, profile)
     if args.deploy and not args.dry_run and deploy_ok:
         print(tr("\nМоди розгорнуто в папку гри. Повний відкат: --undeploy"))
-    elif not args.undeploy and not (args.deploy and not args.dry_run):
+    elif not args.undeploy and not (args.deploy and not args.dry_run) and args.plugin_order is None:
         if os.environ.get("SME_GUI") != "1":  # in the GUI deployment is a button of its own
             print(tr("\nПримітка: без --deploy скрипт не змінює папку гри і plugins.txt."))
     return 0 if deploy_ok else 1
