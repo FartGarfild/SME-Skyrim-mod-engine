@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Skyrim Mod Engine v0.11 — archive analyzer and per-mod extractor
+# Skyrim Mod Engine v0.12 — archive analyzer and per-mod extractor
 # Copyright (C) 2026 MrGabenDima
 # SPDX-License-Identifier: GPL-3.0-or-later
 # https://github.com/FartGarfild/SME-Skyrim-mod-engine — https://www.nexusmods.com/skyrimspecialedition/mods/197185
@@ -385,8 +385,8 @@ _EN = {
         "SKSE: present ({0}); matches the game: {1}",
     "SRS ({0}): SKSE і плагіни перевіряються під {1}":
         "SRS ({0}): SKSE and plugins are checked against {1}",
-    "Skyrim Mod Engine v0.11 — аналіз, розпакування, каталог модів, перевірка SKSE.":
-        "Skyrim Mod Engine v0.11 — analysis, extraction, mod catalog, SKSE checks.",
+    "Skyrim Mod Engine v0.12 — аналіз, розпакування, каталог модів, перевірка SKSE.":
+        "Skyrim Mod Engine v0.12 — analysis, extraction, mod catalog, SKSE checks.",
     "Visual C++ runtime у prefix: справжній (Microsoft) і ввімкнений — OK":
         "Visual C++ runtime in the prefix: real (Microsoft) and enabled — OK",
     "Windows не зміг завантажити DLL":
@@ -6317,7 +6317,7 @@ def baseline_drift(game_dir: Path, output_root: Path) -> list[str]:
 NEXUS_API = os.environ.get("SME_NEXUS_API", "https://api.nexusmods.com")
 NEXUS_GAME = "skyrimspecialedition"
 APP_NAME = "Skyrim Mod Engine"
-APP_VERSION = "0.11"
+APP_VERSION = "0.12"
 NXM_DESKTOP = "skyrim-mod-engine-nxm.desktop"
 
 class NexusError(RuntimeError):
@@ -9963,7 +9963,7 @@ def set_folder(kind: str, value: str, base: Path, output_root: Path, move: bool,
     return 0
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=tr("Skyrim Mod Engine v0.11 — аналіз, розпакування, каталог модів, перевірка SKSE."))
+    parser = argparse.ArgumentParser(description=tr("Skyrim Mod Engine v0.12 — аналіз, розпакування, каталог модів, перевірка SKSE."))
     parser.add_argument("--archives", help=tr("Папка з архівами на цей запуск (за замовч. збережена через --set-archives, інакше ./mods-archives)"))
     parser.add_argument("--mods", help=tr("Папка з розпакованими модами на цей запуск (за замовч. збережена через --set-mods, інакше ./Mods)"))
     parser.add_argument("--set-archives", metavar="PATH", help=tr("Запам'ятати свою папку з архівами модів ('default' — назад до ./mods-archives)."))
@@ -10320,7 +10320,7 @@ def main() -> int:
         all_archives = sorted(p for p in archives_root.rglob("*") if p.is_file() and is_archive(p))
     archive_paths = [p for p in all_archives if not SECONDARY_VOLUME_RE.search(p.name)]
     report = {
-        "engine_version": "0.11",
+        "engine_version": "0.12",
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "archives_directory": str(archives_root),
         "mods_directory": str(mods_root),
