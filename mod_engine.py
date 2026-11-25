@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Skyrim Mod Engine v0.11 — archive analyzer and per-mod extractor
+# Skyrim Mod Engine v0.13-dev — archive analyzer and per-mod extractor
 # Copyright (C) 2026 MrGabenDima
 # SPDX-License-Identifier: GPL-3.0-or-later
 # https://github.com/FartGarfild/SME-Skyrim-mod-engine — https://www.nexusmods.com/skyrimspecialedition/mods/197185
@@ -14,6 +14,7 @@ import json
 import mmap
 import os
 import re
+import shlex
 import shutil
 import struct
 import subprocess
@@ -25,6 +26,7 @@ import zlib
 import zipfile
 from pathlib import Path, PurePosixPath
 from datetime import datetime, timezone
+from html import escape as html_escape
 
 # ===================================================================================
 # Interface language: --lang uk|en (remembered in <output>/settings.json), else SME_LANG,
@@ -80,6 +82,18 @@ def tr(text: str, *args) -> str:
     return s.format(*args) if args else s
 
 _EN = {
+    'Відкриваю сторінку входу Nexus у браузері. Якщо вона не відкрилась, відкрий вручну:\n  {0}': 'Opening the Nexus sign-in page in the browser. If it did not open, open it yourself:\n  {0}',
+    'Вхід у Nexus: {0} ({1}). Вхід через браузер (OAuth), ключ не потрібен.': 'Signed in to Nexus: {0} ({1}). Browser sign-in (OAuth), no key needed.',
+    'Вхід через Nexus ще недоступний: програма чекає на реєстрацію в Nexus. Поки що — персональний API-ключ: --nexus-login КЛЮЧ': 'Sign in with Nexus is not available yet: the app is waiting for registration with Nexus. For now — a personal API key: --nexus-login KEY',
+    'Час на вхід вичерпано — спробуй ще раз.': 'Sign-in timed out — try again.',
+    'Вхід виконано — можна закрити цю вкладку й повернутися до Skyrim Mod Engine.': 'Signed in — you can close this tab and return to Skyrim Mod Engine.',
+    'Вхід не вдався: {0}': 'Sign-in failed: {0}',
+    'Не вдалося відкрити порт {0} для входу: {1}': 'Could not open port {0} for sign-in: {1}',
+    ' — вхід через браузер (OAuth)': ' — browser sign-in (OAuth)',
+    ' — персональний API-ключ': ' — personal API key',
+    'відповідь не від цього входу (state)': 'the answer is not from this sign-in (state)',
+    'Сеанс Nexus закінчився і не оновився ({0}) — увійди знову.': 'The Nexus session ended and could not be renewed ({0}) — sign in again.',
+    'Nexus не прийняв вхід (сеанс завершено або доступ відкликано). Увійди знову: --nexus-login': 'Nexus did not accept the sign-in (session ended or access revoked). Sign in again: --nexus-login',
     '\n=== ПЕРЕВІРКА ОНОВЛЕНЬ ===': '\n=== UPDATE CHECK ===',
     'Архівів з Nexus: {0} (модів: {1})': 'Archives from Nexus: {0} (mods: {1})',
     '  стара версія: папка {0}': '  old version: folder {0}',
@@ -385,8 +399,8 @@ _EN = {
         "SKSE: present ({0}); matches the game: {1}",
     "SRS ({0}): SKSE і плагіни перевіряються під {1}":
         "SRS ({0}): SKSE and plugins are checked against {1}",
-    "Skyrim Mod Engine v0.11 — аналіз, розпакування, каталог модів, перевірка SKSE.":
-        "Skyrim Mod Engine v0.11 — analysis, extraction, mod catalog, SKSE checks.",
+    "Skyrim Mod Engine {0} — аналіз, розпакування, каталог модів, перевірка SKSE.":
+        "Skyrim Mod Engine {0} — analysis, extraction, mod catalog, SKSE checks.",
     "Visual C++ runtime у prefix: справжній (Microsoft) і ввімкнений — OK":
         "Visual C++ runtime in the prefix: real (Microsoft) and enabled — OK",
     "Windows не зміг завантажити DLL":
@@ -866,8 +880,8 @@ _EN = {
         "Personal API key: nexusmods.com → avatar → Site preferences → API Keys → Personal API key",
     "Без Premium Nexus дозволяє завантаження лише кнопкою «Mod Manager Download» на сайті (посилання nxm://). Зареєструй обробник: --nxm-handler":
         "Without Premium, Nexus allows downloads only through the “Mod Manager Download” button on the site (nxm:// links). Register the handler: --nxm-handler",
-    "Ключ Nexus видалено з цього комп'ютера.":
-        "Nexus key removed from this computer.",
+    "Дані входу в Nexus видалено з цього комп'ютера.":
+        "Nexus sign-in data removed from this computer.",
     "Вхід у Nexus не виконано.":
         "Not logged in to Nexus.",
     "Nexus: вхід не виконано (--nexus-login).":
@@ -6317,7 +6331,7 @@ def baseline_drift(game_dir: Path, output_root: Path) -> list[str]:
 NEXUS_API = os.environ.get("SME_NEXUS_API", "https://api.nexusmods.com")
 NEXUS_GAME = "skyrimspecialedition"
 APP_NAME = "Skyrim Mod Engine"
-APP_VERSION = "0.11"
+APP_VERSION = "0.13-dev"
 NXM_DESKTOP = "skyrim-mod-engine-nxm.desktop"
 
 class NexusError(RuntimeError):
@@ -6327,12 +6341,172 @@ def nexus_config_path() -> Path:
     base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
     return base / "skyrim-mod-engine" / "nexus.json"
 
+# OAuth 2.0 (authorization code + PKCE, S256) — the way Nexus wants public apps to sign in. The client
+# ID is issued by Nexus on registration; until then the personal API key (testing only) is the fallback.
+NEXUS_OAUTH = os.environ.get("SME_NEXUS_OAUTH", "https://users.nexusmods.com/oauth")
+NEXUS_CLIENT_ID = os.environ.get("SME_NEXUS_CLIENT_ID", "")  # filled in once Nexus registers the app
+NEXUS_OAUTH_PORT = int(os.environ.get("SME_NEXUS_OAUTH_PORT", "47361"))  # fixed: the redirect URI is registered
+NEXUS_OAUTH_REDIRECT = f"http://127.0.0.1:{NEXUS_OAUTH_PORT}/oauth/callback"
+NEXUS_OAUTH_SCOPE = os.environ.get("SME_NEXUS_OAUTH_SCOPE", "openid profile email")
+
+def nexus_oauth_available() -> bool:
+    return bool(NEXUS_CLIENT_ID)
+
 def nexus_account() -> dict | None:
+    """The saved Nexus account. For an OAuth sign-in the access token is refreshed when it is about
+    to expire; the returned "api_key" is then "Bearer <token>" (what the request helpers send)."""
     try:
         data = json.loads(nexus_config_path().read_text(encoding="utf-8"))
-        return data if data.get("api_key") else None
     except Exception:
         return None
+    if data.get("auth") == "oauth":
+        if not data.get("access_token"):
+            return None
+        if float(data.get("expires_at") or 0) - 120 < time.time():
+            try:
+                data = nexus_oauth_refresh(data)
+            except NexusError as ex:
+                print(tr("Сеанс Nexus закінчився і не оновився ({0}) — увійди знову.", ex), file=sys.stderr)
+                return None
+        acc = dict(data)
+        acc["api_key"] = "Bearer " + data["access_token"]
+        return acc
+    return data if data.get("api_key") else None
+
+def _oauth_post(endpoint: str, form: dict) -> dict:
+    import urllib.request
+    import urllib.error
+    import urllib.parse
+    req = urllib.request.Request(f"{NEXUS_OAUTH}/{endpoint}", data=urllib.parse.urlencode(form).encode(),
+                                 headers={"Content-Type": "application/x-www-form-urlencoded", "Accept": "application/json",
+                                          "User-Agent": _nexus_headers(None)["User-Agent"]})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            raw = r.read()
+            return json.loads(raw.decode("utf-8")) if raw.strip() else {}
+    except urllib.error.HTTPError as ex:
+        body = ex.read()[:400].decode("utf-8", "replace")
+        try:
+            j = json.loads(body)
+            msg = j.get("error_description") or j.get("error") or body
+        except ValueError:
+            msg = body
+        raise NexusError(f"{ex.code}: {msg.strip()[:200]}")
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError) as ex:
+        raise NexusError(str(getattr(ex, "reason", ex)))
+
+def nexus_oauth_store(tok: dict, prev: dict | None = None) -> dict:
+    data = dict(prev or {})
+    data.update(auth="oauth", access_token=tok["access_token"],
+                refresh_token=tok.get("refresh_token") or (prev or {}).get("refresh_token"),
+                expires_at=time.time() + float(tok.get("expires_in") or 3600))
+    data.pop("api_key", None)
+    nexus_save_account(data)
+    return data
+
+def nexus_oauth_refresh(data: dict) -> dict:
+    if not data.get("refresh_token"):
+        raise NexusError("no refresh token")
+    tok = _oauth_post("token", {"grant_type": "refresh_token", "refresh_token": data["refresh_token"], "client_id": NEXUS_CLIENT_ID})
+    return nexus_oauth_store(tok, data)
+
+def nexus_oauth_login(timeout: int = 300) -> dict | None:
+    """Sign in in the browser: open Nexus' authorize page, receive the code on a loopback address,
+    exchange it with the PKCE verifier. No client secret: a desktop app cannot keep one."""
+    import base64
+    import hashlib
+    import http.server
+    import urllib.parse
+    if not NEXUS_CLIENT_ID:
+        print(tr("Вхід через Nexus ще недоступний: програма чекає на реєстрацію в Nexus. Поки що — персональний API-ключ: --nexus-login КЛЮЧ"))
+        return None
+    verifier = secrets.token_urlsafe(64)[:96]
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
+    state = secrets.token_urlsafe(24)
+    url = f"{NEXUS_OAUTH}/authorize?" + urllib.parse.urlencode({
+        "response_type": "code", "client_id": NEXUS_CLIENT_ID, "redirect_uri": NEXUS_OAUTH_REDIRECT,
+        "scope": NEXUS_OAUTH_SCOPE, "state": state, "code_challenge": challenge, "code_challenge_method": "S256"})
+    got: dict = {}
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def log_message(self, *a):
+            pass
+
+        def do_GET(self):
+            u = urllib.parse.urlparse(self.path)
+            q = urllib.parse.parse_qs(u.query)
+            if u.path != "/oauth/callback":
+                self.send_response(404)
+                self.end_headers()
+                return
+            got.update({k: v[0] for k, v in q.items()})
+            ok = got.get("state") == state and "code" in got
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            msg = tr("Вхід виконано — можна закрити цю вкладку й повернутися до Skyrim Mod Engine.") if ok else \
+                tr("Вхід не вдався: {0}", got.get("error_description") or got.get("error") or "state")
+            self.wfile.write(f"<!doctype html><meta charset=utf-8><title>SME</title><body style='font:16px sans-serif;background:#0f1724;color:#e6edf7;padding:40px'>{html_escape(msg)}".encode())
+
+    try:
+        srv = http.server.HTTPServer(("127.0.0.1", NEXUS_OAUTH_PORT), H)
+    except OSError as ex:
+        print(tr("Не вдалося відкрити порт {0} для входу: {1}", NEXUS_OAUTH_PORT, ex))
+        return None
+    srv.timeout = 1
+    print(tr("Відкриваю сторінку входу Nexus у браузері. Якщо вона не відкрилась, відкрий вручну:\n  {0}", url), flush=True)
+    open_external_url(url)
+    end = time.time() + timeout
+    try:
+        while not got and time.time() < end:
+            srv.handle_request()
+    finally:
+        srv.server_close()
+    if not got:
+        print(tr("Час на вхід вичерпано — спробуй ще раз."))
+        return None
+    if got.get("state") != state or "code" not in got:
+        print(tr("ПОМИЛКА входу: {0}", got.get("error_description") or got.get("error") or tr("відповідь не від цього входу (state)")))
+        return None
+    try:
+        tok = _oauth_post("token", {"grant_type": "authorization_code", "client_id": NEXUS_CLIENT_ID, "code": got["code"],
+                                    "redirect_uri": NEXUS_OAUTH_REDIRECT, "code_verifier": verifier})
+    except NexusError as ex:
+        print(tr("ПОМИЛКА входу: {0}", ex))
+        return None
+    data = nexus_oauth_store(tok)
+    try:
+        u = nexus_get("/v1/users/validate.json", "Bearer " + data["access_token"])
+        data.update(name=u.get("name"), user_id=u.get("user_id"), is_premium=bool(u.get("is_premium", u.get("is_premium?"))))
+    except NexusError:
+        try:  # the OpenID userinfo as a fallback for the name and membership
+            import urllib.request
+            req = urllib.request.Request(f"{NEXUS_OAUTH}/userinfo", headers={"Authorization": "Bearer " + data["access_token"],
+                                                                             "Accept": "application/json"})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                ui = json.loads(r.read().decode("utf-8"))
+            roles = [str(x).lower() for x in ui.get("membership_roles") or []]
+            data.update(name=ui.get("name") or ui.get("preferred_username"), user_id=ui.get("sub"), is_premium="premium" in roles)
+        except Exception:
+            pass
+    data["checked_at"] = datetime.now().astimezone().isoformat(timespec="seconds")
+    nexus_save_account(data)
+    print(tr("Вхід у Nexus: {0} ({1}). Вхід через браузер (OAuth), ключ не потрібен.", data.get("name") or "?",
+             tr("Premium") if data.get("is_premium") else tr("безкоштовний акаунт")))
+    return data
+
+def open_external_url(url: str) -> None:
+    cmd = os.environ.get("SME_OPEN_CMD")  # tests: a command that "visits" the page
+    if cmd:
+        subprocess.Popen(shlex.split(cmd) + [url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return
+    opener = shutil.which("xdg-open")
+    if opener:
+        subprocess.Popen([opener, url], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                         start_new_session=True)
+    else:
+        import webbrowser
+        webbrowser.open(url)
 
 def nexus_save_account(data: dict) -> None:
     p = nexus_config_path()
@@ -6346,8 +6520,10 @@ def nexus_save_account(data: dict) -> None:
 def _nexus_headers(key: str | None) -> dict:
     h = {"Application-Name": APP_NAME, "Application-Version": APP_VERSION, "Accept": "application/json",
          "User-Agent": f"{APP_NAME}/{APP_VERSION} (Linux; Python {sys.version.split()[0]})"}
-    if key:
-        h["apikey"] = key
+    if key and key.startswith("Bearer "):
+        h["Authorization"] = key  # OAuth sign-in
+    elif key:
+        h["apikey"] = key  # personal API key (testing / before registration)
     return h
 
 def nexus_get(path: str, key: str, params: dict | None = None, body: dict | None = None):
@@ -6372,6 +6548,8 @@ def nexus_get(path: str, key: str, params: dict | None = None, body: dict | None
         except Exception:
             msg = body
         if ex.code == 401:
+            if key and key.startswith("Bearer "):
+                raise NexusError(tr("Nexus не прийняв вхід (сеанс завершено або доступ відкликано). Увійди знову: --nexus-login"))
             raise NexusError(tr("Nexus не прийняв API-ключ (недійсний або відкликаний). Увійди знову: --nexus-login"))
         if ex.code == 403:
             raise NexusError(tr("Nexus відмовив у доступі: {0}", msg.strip() or ex.code))
@@ -6389,6 +6567,8 @@ def nexus_get(path: str, key: str, params: dict | None = None, body: dict | None
         raise NexusError(tr("Nexus відповів не JSON: {0}", ex))
 
 def nexus_login(key: str | None) -> dict | None:
+    if (key or "").strip().lower() == "oauth" or (not key and nexus_oauth_available()):
+        return nexus_oauth_login()
     if not key:
         if not sys.stdin.isatty():
             print(tr("Вкажи ключ: --nexus-login КЛЮЧ (Nexus → Site preferences → API Keys → Personal API key)"))
@@ -6416,9 +6596,15 @@ def nexus_login(key: str | None) -> dict | None:
 
 def nexus_logout() -> None:
     p = nexus_config_path()
+    try:  # an OAuth sign-in: revoke the refresh token too (best effort)
+        data = json.loads(p.read_text(encoding="utf-8"))
+        if data.get("auth") == "oauth" and data.get("refresh_token") and NEXUS_CLIENT_ID:
+            _oauth_post("revoke", {"token": data["refresh_token"], "token_type_hint": "refresh_token", "client_id": NEXUS_CLIENT_ID})
+    except (OSError, ValueError, NexusError):
+        pass
     if p.exists():
         p.unlink()
-        print(tr("Ключ Nexus видалено з цього комп'ютера."))
+        print(tr("Дані входу в Nexus видалено з цього комп'ютера."))
     else:
         print(tr("Вхід у Nexus не виконано."))
 
@@ -6427,7 +6613,8 @@ def nexus_status() -> None:
     if not acc:
         print(tr("Nexus: вхід не виконано (--nexus-login)."))
         return
-    print(tr("Nexus: {0} ({1})", acc.get("name"), tr("Premium") if acc.get("is_premium") else tr("безкоштовний акаунт")))
+    print(tr("Nexus: {0} ({1})", acc.get("name"), tr("Premium") if acc.get("is_premium") else tr("безкоштовний акаунт"))
+          + (tr(" — вхід через браузер (OAuth)") if acc.get("auth") == "oauth" else tr(" — персональний API-ключ")))
 
 def parse_nxm(url: str) -> dict:
     """nxm://skyrimspecialedition/mods/<mod>/files/<file>?key=..&expires=..&user_id=.."""
@@ -7305,6 +7492,7 @@ GUI_ACTIONS = {
     "check_updates": ["--check-updates"],
     "check_updates_full": ["--check-updates", "full"],
     "update_all": ["--update-all"],
+    "nexus_oauth": ["--nexus-login", "oauth"],
     "papyrus_on": ["--papyrus-log", "on"],
     "papyrus_off": ["--papyrus-log", "off"],
     "collection_none": ["--collection", "none", "--scan-only"],
@@ -7597,7 +7785,7 @@ class GuiApp:
         with self.lock:
             job = dict(self.job) if self.job else None
         return {
-            "lang": e._LANG, "version": manifest.get("engine_version") or "?",
+            "lang": e._LANG, "version": e.APP_VERSION,
             "catalog_at": manifest.get("generated_at"),
             "profile": profile, "profiles": e.list_profiles(self.out),
             "mods": mods, "attention": attention, "fomods": fomods,
@@ -7610,7 +7798,9 @@ class GuiApp:
             "overwrite": {"files": ow_files[:500], "total": len(ow_files)},
             "backups": {"files": backups, "changed_sets": changed[:20]},
             "skse": skse, "job": job,
-            "nexus": ({"name": acc.get("name"), "premium": bool(acc.get("is_premium"))} if (acc := e.nexus_account()) else None),
+            "nexus": ({"name": acc.get("name"), "premium": bool(acc.get("is_premium")), "auth": acc.get("auth") or "key"}
+                      if (acc := e.nexus_account()) else None),
+            "nexus_oauth": e.nexus_oauth_available(),
             "collection": self.collection_state(),
             "game_backups": e.list_backups(self.out),
             "protection": dict(zip(("store_files", "store_size"), e.store_stats(self.out)),
@@ -9237,7 +9427,7 @@ npHint:"Новий профіль бере лише порядок модів; �
 busy:"Зачекай — триває інша операція.",confirmUndeploy:"Прибрати всі моди з гри й відновити оригінали?",confirmDel:"Видалити профіль «%s»?",profileName:"Назва профілю",idle:"Готово",
 launchFail:"Не знайшов Steam для запуску. Запусти гру зі Steam.",gameRunning:"Гра вже запущена.",openArchives:"Відкрити папку архівів",noMods:"Модів ще немає. Поклади архіви в mods-archives і натисни «Розпакувати нові».",closed:"Інтерфейс закрито. Цю вкладку можна закрити.",
 nexus:"Nexus Mods",nxLogged:"Увійшов як",nxPremium:"Premium",nxFree:"безкоштовний акаунт",nxNone:"Вхід не виконано.",nxKey:"Персональний API-ключ",nxKeyHelp:"nexusmods.com → аватар → Site preferences → API Keys → Personal API key. Ключ зберігається лише на цьому комп'ютері.",
-nxLogin:"Увійти",nxLogout:"Вийти",nxHandler:"Приймати «Mod Manager Download» (nxm://)",nxHandlerHelp:"Без Premium Nexus дозволяє завантаження лише кнопкою «Mod Manager Download» на сайті: файл ляже в mods-archives.",
+nxLogin:"Увійти",nxOauth:"Увійти через Nexus",nxOauthHelp:"Відкриється сторінка Nexus у браузері: підтверди доступ — і програма увійде сама. Ключ копіювати не треба.",nxKeyAlt:"Або персональний API-ключ (для тестування)",nxKeyToOauth:"Вхід через ключ. Зручніше й безпечніше — «Вийти», потім «Увійти через Nexus».",nxLogout:"Вийти",nxHandler:"Приймати «Mod Manager Download» (nxm://)",nxHandlerHelp:"Без Premium Nexus дозволяє завантаження лише кнопкою «Mod Manager Download» на сайті: файл ляже в mods-archives.",
 nxColl:"Завантажити відсутні архіви колекції",nxCollAll:"Завантажити разом з необов'язковими",nxDownload:"Завантажити з Nexus (ID або посилання)",nxAsk:"ID мода, ID:ID_файлу або посилання на сторінку мода",nxLoginFail:"Ключ не прийнято (див. журнал).",
 collection:"Колекція",collNone:"Колекцію не вибрано.",collFetch:"Взяти колекцію з Nexus",collLink:"Посилання на сторінку колекції або її код",collBy:"автор",
 collFound:"Архівів є",collMissing:"Бракує",collReq:"обов'язкових",collOpt:"необов'язкових",collDl:"Mod Manager Download",collScan:"Перевірити архіви (розпакувати нові)",
@@ -9314,7 +9504,7 @@ npHint:"A new profile takes only the mod order; all mods are disabled. With a co
 busy:"Please wait — another operation is running.",confirmUndeploy:"Remove all mods from the game and restore originals?",confirmDel:"Delete profile «%s»?",profileName:"Profile name",idle:"Ready",
 launchFail:"Steam not found to launch the game. Start it from Steam.",gameRunning:"The game is already running.",openArchives:"Open archives folder",noMods:"No mods yet. Put archives into mods-archives and press “Extract new”.",closed:"Interface closed. You can close this tab.",
 nexus:"Nexus Mods",nxLogged:"Logged in as",nxPremium:"Premium",nxFree:"free account",nxNone:"Not logged in.",nxKey:"Personal API key",nxKeyHelp:"nexusmods.com → avatar → Site preferences → API Keys → Personal API key. The key is stored only on this computer.",
-nxLogin:"Log in",nxLogout:"Log out",nxHandler:"Accept “Mod Manager Download” (nxm://)",nxHandlerHelp:"Without Premium, Nexus allows downloads only through the “Mod Manager Download” button on the site: the file lands in mods-archives.",
+nxLogin:"Log in",nxOauth:"Sign in with Nexus",nxOauthHelp:"The Nexus page opens in your browser: approve access and the program signs in by itself. No key to copy.",nxKeyAlt:"Or a personal API key (for testing)",nxKeyToOauth:"Signed in with a key. Easier and safer: “Log out”, then “Sign in with Nexus”.",nxLogout:"Log out",nxHandler:"Accept “Mod Manager Download” (nxm://)",nxHandlerHelp:"Without Premium, Nexus allows downloads only through the “Mod Manager Download” button on the site: the file lands in mods-archives.",
 nxColl:"Download missing collection archives",nxCollAll:"Download including optional ones",nxDownload:"Download from Nexus (ID or link)",nxAsk:"Mod ID, ID:file ID or the mod page link",nxLoginFail:"Key not accepted (see the log).",
 collection:"Collection",collNone:"No collection selected.",collFetch:"Get a collection from Nexus",collLink:"Collection page link or its code",collBy:"by",
 collFound:"Archives present",collMissing:"Missing",collReq:"required",collOpt:"optional",collDl:"Mod Manager Download",collScan:"Check archives (extract new)",
@@ -9536,7 +9726,7 @@ function settingsView(){const d=S.deployed;return pageWrap(`<h2>${t("settingsPag
  <div class="toolbar" style="margin-top:6px"><button class="btn pri" style="padding:5px 10px" onclick="const v=$('#sLog').value.trim();v&&run('set_skse_log',v)">${t("pSave")}</button><button class="btn" style="padding:5px 10px" onclick="run('set_skse_log','default')">${t("pDefaultShort")}</button></div>
  <label style="display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:13px"><input type="checkbox" ${S.game.loot?"checked":""} onchange="run(this.checked?'loot_on':'loot_off')"><span>${t("lootUse")}<br><span style="color:var(--mut);font-size:12px">${t("lootHelp")}</span></span></label></div>
  <div class="box"><b>${t("nexus")}</b><div style="margin:6px 0">${S.nexus?`${t("nxLogged")} <b>${esc(S.nexus.name)}</b> (${t(S.nexus.premium?"nxPremium":"nxFree")})`:t("nxNone")}</div>
- ${S.nexus?`<button class="btn" onclick="nxLogout()">${t("nxLogout")}</button>`:`<div style="font-size:12.5px;color:var(--mut)">${t("nxKeyHelp")}</div><div class="toolbar" style="margin-top:6px"><div class="search"><input id="nxKey" type="password" placeholder="${t("nxKey")}"></div><button class="btn pri" onclick="nxLogin()">${t("nxLogin")}</button></div>`}
+ ${S.nexus?`<button class="btn" onclick="nxLogout()">${t("nxLogout")}</button>`:`${S.nexus_oauth?`<div class="toolbar" style="margin-bottom:8px"><button class="btn pri" onclick="run('nexus_oauth')" ${running?"disabled":""}>${t("nxOauth")}</button></div><div style="font-size:12.5px;color:var(--mut);margin-bottom:6px">${t("nxKeyAlt")}:</div>`:""}<div style="font-size:12.5px;color:var(--mut)">${t("nxKeyHelp")}</div><div class="toolbar" style="margin-top:6px"><div class="search"><input id="nxKey" type="password" placeholder="${t("nxKey")}"></div><button class="btn pri" onclick="nxLogin()">${t("nxLogin")}</button></div>`}
  <div style="margin-top:10px"><button class="btn" onclick="run('nxm_handler')">${t("nxHandler")}</button><div style="font-size:12px;color:var(--mut);margin-top:4px">${t("nxHandlerHelp")}</div></div>
  ${S.nexus?`<div style="margin-top:10px;font-size:12.5px;color:var(--mut)">${t("nxmPaste")}</div><div class="toolbar" style="margin-top:4px"><div class="search" style="flex:1 1 100%"><input id="nxmUrl" placeholder="nxm://…"></div><button class="btn" onclick="const v=$('#nxmUrl').value.trim();v.startsWith('nxm://')?run('nxm',v):alert(t('nxmBad'))">${t("nxmGo")}</button></div>`:""}
  ${S.nexus&&S.nexus.premium?`<div class="toolbar" style="margin-top:10px"><button class="btn" onclick="nxDl()">${t("nxDownload")}</button>${S.collection?`<button class="btn" onclick="run('collection_download')">${t("nxColl")}</button><button class="btn" onclick="run('collection_download_all')">${t("nxCollAll")}</button>`:""}</div>`:""}</div>
@@ -9568,11 +9758,12 @@ function homeView(){const on=S.mods.filter(m=>m.enabled),d=S.deployed,c=S.collec
  const ok=v=>`<span class="okline">✔</span>`,warn=v=>`<span class="warnline">⚠</span>`,bad=v=>`<span class="badline">✖</span>`;
  const row=(st,label,val,go)=>`<div class="hrow">${st}<span class="hk">${label}</span><span class="hv">${val}</span>${go?`<a class="link" onclick="page='${go}';render()">›</a>`:""}</div>`;
  const missReq=c?c.mods.filter(m=>!m.have&&!m.optional).length:0;
- const nx=S.nexus?`<div class="box hnx"><b>Nexus Mods</b><div style="margin:8px 0">${ok()} ${t("nxLogged")} <b>${esc(S.nexus.name)}</b> · ${t(S.nexus.premium?"nxPremium":"nxFree")}</div>
+ const nx=S.nexus?`<div class="box hnx"><b>Nexus Mods</b><div style="margin:8px 0">${ok()} ${t("nxLogged")} <b>${esc(S.nexus.name)}</b> · ${t(S.nexus.premium?"nxPremium":"nxFree")}${S.nexus.auth==="key"&&S.nexus_oauth?`<div class="m" style="font-size:12.5px;margin-top:4px">${t("nxKeyToOauth")}</div>`:""}</div>
   <div class="toolbar"><button class="btn" onclick="nxLogout()">${t("nxLogout")}</button></div></div>`
   :`<div class="box hnx" style="border-color:var(--acc)"><b>Nexus Mods</b><p class="m" style="margin:6px 0 10px">${t("hmNxWhy")}</p>
-  <div class="toolbar"><div class="search" style="flex:1 1 220px"><input id="nxKeyHome" type="password" autocomplete="off" placeholder="${t("nxKey")}"></div><button class="btn pri" onclick="nxLogin('nxKeyHome')">${t("nxLogin")}</button></div>
-  <div style="font-size:12.5px;color:var(--mut);margin-top:8px">${t("nxKeyHelp")} <a class="link" onclick="api('/api/open_url',{url:'https://next.nexusmods.com/settings/api-keys'})">${t("hmKeyPage")}</a></div></div>`;
+  ${S.nexus_oauth?`<div class="toolbar"><button class="btn pri" onclick="run('nexus_oauth')" ${running?"disabled":""}>${t("nxOauth")}</button></div><div style="font-size:12.5px;color:var(--mut);margin:8px 0 4px">${t("nxOauthHelp")}</div><details style="font-size:12.5px"><summary class="m">${t("nxKeyAlt")}</summary>`:""}
+  <div class="toolbar"><div class="search" style="flex:1 1 220px"><input id="nxKeyHome" type="password" autocomplete="off" placeholder="${t("nxKey")}"></div><button class="btn ${S.nexus_oauth?"":"pri"}" onclick="nxLogin('nxKeyHome')">${t("nxLogin")}</button></div>
+  <div style="font-size:12.5px;color:var(--mut);margin-top:8px">${t("nxKeyHelp")} <a class="link" onclick="api('/api/open_url',{url:'https://next.nexusmods.com/settings/api-keys'})">${t("hmKeyPage")}</a></div>${S.nexus_oauth?"</details>":""}</div>`;
  const setup=`<div class="box"><b>${t("hmSetup")}</b>
   ${row("•",t("profile"),esc(S.profile)+(S.profiles.length>1?` <span style="color:var(--mut)">(${S.profiles.length} ${t("hmProfiles")})</span>`:""),"settings")}
   ${row(c?(missReq?warn():ok()):"•",t("collection"),c?`${esc(c.name||"?")} <span style="color:var(--mut)">${t("collBy")} ${esc(c.author||"?")}</span>${missReq?` · <span class="warnline">${t("collMissing")}: ${missReq}</span>`:""}`:`<span style="color:var(--mut)">${t("hmNoColl")}</span>`,"collection")}
@@ -9963,7 +10154,7 @@ def set_folder(kind: str, value: str, base: Path, output_root: Path, move: bool,
     return 0
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=tr("Skyrim Mod Engine v0.11 — аналіз, розпакування, каталог модів, перевірка SKSE."))
+    parser = argparse.ArgumentParser(description=tr("Skyrim Mod Engine {0} — аналіз, розпакування, каталог модів, перевірка SKSE.", "v" + APP_VERSION))
     parser.add_argument("--archives", help=tr("Папка з архівами на цей запуск (за замовч. збережена через --set-archives, інакше ./mods-archives)"))
     parser.add_argument("--mods", help=tr("Папка з розпакованими модами на цей запуск (за замовч. збережена через --set-mods, інакше ./Mods)"))
     parser.add_argument("--set-archives", metavar="PATH", help=tr("Запам'ятати свою папку з архівами модів ('default' — назад до ./mods-archives)."))
@@ -10320,7 +10511,7 @@ def main() -> int:
         all_archives = sorted(p for p in archives_root.rglob("*") if p.is_file() and is_archive(p))
     archive_paths = [p for p in all_archives if not SECONDARY_VOLUME_RE.search(p.name)]
     report = {
-        "engine_version": "0.11",
+        "engine_version": APP_VERSION,
         "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
         "archives_directory": str(archives_root),
         "mods_directory": str(mods_root),

@@ -254,7 +254,7 @@ python3 mod_engine.py --profile-delete "Light"
 | `--restore-game NAME` / `--backups` / `--backup-verify NAME` / `--backup-delete NAME` | Restore / list / verify / delete game backups. |
 | `--incremental-backup on` / `off` | Keep originals of game files that mods override (off until you enable it). |
 | `--game-check` / `--game-repair` / `--game-baseline` | Compare the game with its clean file list / clean it up / record the list again. |
-| `--nexus-login [KEY]` / `--nexus-logout` / `--nexus-status` | Nexus account (personal API key). |
+| `--nexus-login [oauth/KEY]` / `--nexus-logout` / `--nexus-status` | Nexus account: sign in through the browser (OAuth) or, for testing, a personal API key. |
 | `--nexus-download MOD[:FILE]` | Download from Nexus (Premium; ID, ID:file ID or page link). |
 | `--nxm-handler` / `--nxm URL` | Register as `nxm://` handler / handle one link. |
 | `--collection-nexus LINK` | Get a collection from Nexus (page link, nxm:// or code). |
@@ -308,6 +308,25 @@ The script detects this before you launch (Wine DLLs are marked internally, Micr
 also checks the matching `DllOverrides`.
 
 ---
+
+## Nexus Mods account and API use
+
+- **Signing in.** *Sign in with Nexus* (or `--nexus-login`) uses OAuth 2.0 with PKCE: the program opens the
+  Nexus authorization page in your browser and receives the answer on a local address
+  (`http://127.0.0.1:47361/oauth/callback`). There is no client secret in the program (a desktop app cannot
+  keep one); PKCE protects the exchange. The access token is refreshed automatically; *Log out* revokes the
+  refresh token and deletes it. This button appears once Nexus has registered the app; until then a
+  **personal API key** can be used for testing (`--nexus-login KEY`).
+- **What is stored, where.** Only on your computer: `~/.config/skyrim-mod-engine/nexus.json`, readable by
+  your user only (mode 600) — the token or key, your user name and whether the account is Premium. Nothing
+  is sent anywhere except to nexusmods.com.
+- **When the program talks to Nexus.** Only when you do something: search the mod browser, open a mod's
+  files, download, check for updates, attach a collection, install SKSE. Every request carries
+  `Application-Name: Skyrim Mod Engine` and `Application-Version`. Nothing runs in the background.
+- **Downloads.** With Premium, files are downloaded through the API. Without Premium only through the
+  site's *Mod Manager Download* button (nxm:// links), as Nexus requires.
+- **Update checks** read each mod's file list once (and once a month); in between only the mods Nexus
+  lists as recently updated are re-read, to keep the number of requests low.
 
 ## Safety notes
 
