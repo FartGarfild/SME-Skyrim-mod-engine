@@ -1,4 +1,4 @@
-# Skyrim Mod Engine — test version 0.11
+# Skyrim Mod Engine — test version 0.12
 
 A single-file mod manager for **Skyrim Special Edition / Anniversary Edition on Steam Deck and Linux**.
 It runs natively (plain Python, no Wine for the manager itself) and prepares a Proton game install:
